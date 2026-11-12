@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -826,6 +827,15 @@
   </div>
 
   <script>
+    const deploymentConfig = window.SUPABASE_CONFIG;
+    if (!deploymentConfig?.url || !deploymentConfig?.publishableKey) {
+      throw new Error('Missing deployed Supabase configuration');
+    }
+    const createConfiguredClient = supabase.createClient.bind(supabase);
+    supabase.createClient = () => createConfiguredClient(
+      deploymentConfig.url,
+      deploymentConfig.publishableKey,
+    );
     const SUPABASE_URL = 'https://ocydmipwjivmcgzhggml.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWRtaXB3aml2bWNnemhnZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY3OTMsImV4cCI6MjA5MTI1Mjc5M30.di8n5e3wQC378RVHit7ltb-9yuhwojsaXoRRhEEIh2E';
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

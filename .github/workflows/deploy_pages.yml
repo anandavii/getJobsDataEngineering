@@ -1,0 +1,43 @@
+name: Deploy Data Engineering Job Board
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/deploy_pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Build static dashboard
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_PUBLISHABLE_KEY"
+          mkdir _site
+          cp -R docs/. _site/
+          node -e 'const fs = require("fs"); const template = fs.readFileSync("docs/supabase-config.template.js", "utf8"); const rendered = template.replace("__SUPABASE_URL__", process.env.SUPABASE_URL).replace("__SUPABASE_PUBLISHABLE_KEY__", process.env.SUPABASE_PUBLISHABLE_KEY); fs.writeFileSync("_site/supabase-config.js", rendered);'
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

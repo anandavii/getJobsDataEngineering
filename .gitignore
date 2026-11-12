@@ -9,6 +9,7 @@ token.json
 
 # Temporary / intermediate files
 .tmp/
+docs/supabase-config.js
 .playwright-cli/
 supabase/.temp/
 verify-ui.js
