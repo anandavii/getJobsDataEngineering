@@ -143,6 +143,14 @@ def test_active_data_engineering_config_merges_domain_rules():
     assert config["domain_filter"]["rejected_sample_limit"] == 200
 
 
+def test_amazon_company_source_remains_enabled():
+    companies_path = Path(__file__).resolve().parents[1] / "config" / "sources" / "companies.json"
+    companies = json.loads(companies_path.read_text())
+    amazon = next(company for company in companies if company["name"] == "Amazon")
+
+    assert amazon["enabled"] is True
+
+
 def test_active_domain_defaults_to_data_engineering(cfg):
     """No active_domain key → loader uses data_engineering without error."""
     from tools.config_loader import load_config

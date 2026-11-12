@@ -36,7 +36,7 @@
     "ats": "lever",
     "url": "https://api.lever.co/v0/postings/netflix?mode=json",
     "board_url": "https://jobs.netflix.com/",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "ECS Federal",

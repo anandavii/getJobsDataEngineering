@@ -836,9 +836,7 @@
       deploymentConfig.url,
       deploymentConfig.publishableKey,
     );
-    const SUPABASE_URL = 'https://ocydmipwjivmcgzhggml.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWRtaXB3aml2bWNnemhnZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY3OTMsImV4cCI6MjA5MTI1Mjc5M30.di8n5e3wQC378RVHit7ltb-9yuhwojsaXoRRhEEIh2E';
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const client = supabase.createClient();
 
     (async () => {
       // ── Auth gate ───────────────────────────────────────────────────────────
@@ -1330,12 +1328,11 @@
         statusEl.style.display  = '';
         contentEl.style.display = 'none';
         try {
-          const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/company_source_health?select=*&order=days_empty.desc`,
-            { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
-          );
-          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          const data = await response.json();
+          const { data, error } = await client
+            .from('company_source_health')
+            .select('*')
+            .order('days_empty', { ascending: false });
+          if (error) throw error;
           statusEl.style.display = 'none';
           if (!data.length) {
             statusEl.innerHTML = '<p>No company health data yet — run the pipeline to populate.</p>';

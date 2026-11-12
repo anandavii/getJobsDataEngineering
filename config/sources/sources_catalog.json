@@ -32,7 +32,7 @@
     { "name": "Gather AI",               "board_token": "gatherai",                "enabled": true  }
   ],
   "lever": [
-    { "name": "Atlassian",   "board_token": "atlassian",      "enabled": true  },
+    { "name": "Atlassian",   "board_token": "atlassian",      "enabled": false },
     { "name": "WHOOP",       "lever_token": "whoop",          "enabled": true  }
   ],
   "ashby": [
@@ -50,7 +50,7 @@
     { "name": "Nightwing", "tenant": "nwis",  "site": "NW",                   "subdomain": "wd12", "enabled": true  },
     { "name": "Disney Entertainment and ESPN Product & Technology", "tenant": "disney", "site": "disneycareer", "enabled": true },
     { "name": "CVS Health", "tenant": "cvshealth", "site": "CVS_Health_Careers", "subdomain": "wd1", "enabled": true },
-    { "name": "Walmart", "tenant": "walmart", "site": "non-workdayinternal", "enabled": true },
+    { "name": "Walmart", "tenant": "walmart", "site": "non-workdayinternal", "enabled": false },
     { "name": "DMA - DuCharme, McMillen & Associates, Inc.", "tenant": "dmainc", "site": "DMA", "subdomain": "wd5", "enabled": true },
     { "name": "Procore Technologies", "tenant": "procore", "site": "Procore_External_Careers", "subdomain": "wd12", "enabled": true }
   ],

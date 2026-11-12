@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, UTC
 
 import requests
 
+from source_errors import SourceFetchError
+
 log = logging.getLogger(__name__)
 
 JSEARCH_BASE_URL = "https://jsearch.p.rapidapi.com/search"
@@ -22,6 +24,15 @@ SLEEP_BETWEEN_KEYWORDS = 1  # seconds — stay well under rate limits
 
 class _QuotaExhausted(Exception):
     """Raised when JSearch returns a 429 quota-exceeded response."""
+
+
+class _KeywordRequestFailed(Exception):
+    """Raised when one JSearch keyword request fails."""
+
+
+def _jsearch_date_posted(value: str) -> str:
+    """Map legacy settings to the values accepted by the JSearch endpoint."""
+    return {"yesterday": "3days"}.get(value, value)
 
 
 def _normalize_job_type(employment_type: str | None) -> str:
@@ -108,7 +119,7 @@ def _fetch_keyword(keyword: str, api_key: str, config: dict) -> list[dict]:
     }
     params = {
         "query": keyword,
-        "date_posted": config["search"].get("date_posted", "today"),
+        "date_posted": _jsearch_date_posted(config["search"].get("date_posted", "today")),
         "num_pages": str(config["search"].get("jsearch_num_pages", 1)),
         "country": "us",
     }
@@ -136,7 +147,7 @@ def _fetch_keyword(keyword: str, api_key: str, config: dict) -> list[dict]:
     # and intentionally propagates to the caller.
     except requests.RequestException as e:
         log.error(f"JSearch request failed for keyword '{keyword}': {e}")
-        return []
+        raise _KeywordRequestFailed(str(e)) from e
 
     jobs_raw = data.get("data", [])
     if not isinstance(jobs_raw, list):
@@ -155,6 +166,8 @@ def run(config: dict, api_key: str) -> list[dict]:
     all_jobs: list[dict] = []
     seen_urls: set[str] = set()
     attempted = 0
+    successful_requests = 0
+    request_errors: list[str] = []
 
     for i, keyword in enumerate(keywords):
         log.info(f"JSearch: fetching keyword {i + 1}/{len(keywords)}: '{keyword}'")
@@ -163,7 +176,12 @@ def run(config: dict, api_key: str) -> list[dict]:
         except _QuotaExhausted:
             log.warning("JSearch: quota exhausted — skipping remaining keywords")
             break
+        except _KeywordRequestFailed as e:
+            request_errors.append(str(e))
+            attempted += 1
+            continue
         attempted += 1
+        successful_requests += 1
 
         for job in jobs:
             job["_query"] = keyword
@@ -176,6 +194,10 @@ def run(config: dict, api_key: str) -> list[dict]:
             time.sleep(SLEEP_BETWEEN_KEYWORDS)
 
     log.info(f"JSearch: {len(all_jobs)} unique jobs fetched across {attempted}/{len(keywords)} keywords")
+
+    if attempted and successful_requests == 0:
+        detail = request_errors[-1] if request_errors else "no successful requests"
+        raise SourceFetchError(f"JSearch: all {attempted} keyword requests failed: {detail}")
 
     # Filter to max_age_hours if configured
     max_age_hours = config["search"].get("max_age_hours")

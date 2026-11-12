@@ -10,19 +10,28 @@ Usage:
 """
 
 import logging
+import time
 from datetime import datetime
 
 import requests
 
+from source_errors import SourceFetchError
+
 log = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = 20
+MAX_RETRIES = 2
+RETRY_DELAY_SECONDS = 1
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; job-search-bot/1.0)",
     "Accept": "application/json",
 }
 
 DEFAULT_CATEGORIES = ["software-dev"]
+
+
+class _CategoryFetchFailed(Exception):
+    """Raised when a Remotive category cannot be retrieved after retries."""
 
 
 def categories_for(config: dict) -> list[str]:
@@ -49,13 +58,18 @@ def _parse_date(date_str: str | None) -> str | None:
 
 def _fetch_category(category: str) -> list[dict]:
     url = f"https://remotive.io/api/remote-jobs?category={category}"
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        return resp.json().get("jobs", [])
-    except Exception as e:
-        log.error(f"Remotive fetch failed for category '{category}': {e}")
-        return []
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            return resp.json().get("jobs", [])
+        except (requests.RequestException, ValueError) as e:
+            if attempt == MAX_RETRIES:
+                log.error(f"Remotive fetch failed for category '{category}': {e}")
+                raise _CategoryFetchFailed(str(e)) from e
+            time.sleep(RETRY_DELAY_SECONDS)
+
+    raise AssertionError("unreachable")
 
 
 def run(config: dict) -> list[dict]:
@@ -68,14 +82,26 @@ def run(config: dict) -> list[dict]:
     raw_jobs: list[dict] = []
     seen_ids: set[int] = set()
     categories = categories_for(config)
+    successful_categories = 0
+    category_errors: list[str] = []
     for cat in categories:
-        for job in _fetch_category(cat):
+        try:
+            category_jobs = _fetch_category(cat)
+        except _CategoryFetchFailed as e:
+            category_errors.append(str(e))
+            continue
+        successful_categories += 1
+        for job in category_jobs:
             jid = job.get("id")
             if jid and jid not in seen_ids:
                 seen_ids.add(jid)
                 raw_jobs.append(job)
 
     log.info(f"Remotive: {len(raw_jobs)} raw jobs fetched across {len(categories)} categories")
+
+    if categories and successful_categories == 0:
+        detail = category_errors[-1] if category_errors else "no successful requests"
+        raise SourceFetchError(f"Remotive: all {len(categories)} category requests failed: {detail}")
 
     results: list[dict] = []
     seen_urls: set[str] = set()

@@ -16,6 +16,7 @@ from typing import Any
 import requests
 
 from company_health import upsert_company_health
+from source_errors import SourceFetchError
 
 log = logging.getLogger(__name__)
 
@@ -392,6 +393,9 @@ def run_lever(config: dict, keywords: list[str] | None = None) -> list[dict]:
     keywords = keywords or config.get("search", {}).get("keywords", [])
     entries = config.get("sources_catalog", {}).get("lever", [])
     jobs: list[dict] = []
+    attempted_entries = 0
+    successful_fetches = 0
+    request_errors: list[str] = []
 
     for entry in entries:
         if not _entry_enabled(entry):
@@ -401,12 +405,15 @@ def run_lever(config: dict, keywords: list[str] | None = None) -> list[dict]:
             continue
         url = entry.get("url") or f"https://api.lever.co/v0/postings/{token}?mode=json"
         company_name = entry.get("name") or str(token or "lever")
+        attempted_entries += 1
 
         try:
             data = _request_json(url)
         except Exception as e:
             log.error(f"Lever fetch failed for '{company_name}': {e}")
+            request_errors.append(f"{company_name}: {e}")
             continue
+        successful_fetches += 1
 
         raw_jobs = data if isinstance(data, list) else []
         job_board_url = entry.get("job_board_url", "")
@@ -448,6 +455,10 @@ def run_lever(config: dict, keywords: list[str] | None = None) -> list[dict]:
             )
             if row:
                 jobs.append(row)
+
+    if attempted_entries and successful_fetches == 0:
+        detail = request_errors[-1] if request_errors else "no successful requests"
+        raise SourceFetchError(f"Lever: all {attempted_entries} board requests failed: {detail}")
 
     return _dedup(jobs)
 

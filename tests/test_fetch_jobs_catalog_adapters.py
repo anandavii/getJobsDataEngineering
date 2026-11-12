@@ -3,10 +3,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import requests
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import fetch_jobs_catalog_adapters
+from source_errors import SourceFetchError
 
 
 _LIST_RESPONSE = {
@@ -61,6 +64,18 @@ class AshbyPublishedDateTests(unittest.TestCase):
 
         self.assertEqual(len(jobs), 1)
         self.assertIsNone(jobs[0]["date_posted"])
+
+
+class LeverFailureTests(unittest.TestCase):
+    def test_run_lever_raises_when_every_enabled_board_request_fails(self) -> None:
+        config = {
+            "search": {"keywords": ["Data Engineer"]},
+            "sources_catalog": {"lever": [{"name": "Example", "board_token": "example", "enabled": True}]},
+        }
+
+        with patch("fetch_jobs_catalog_adapters._request_json", side_effect=requests.HTTPError("404")):
+            with self.assertRaises(SourceFetchError):
+                fetch_jobs_catalog_adapters.run_lever(config)
 
 
 if __name__ == "__main__":

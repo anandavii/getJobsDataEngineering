@@ -21,3 +21,11 @@ def test_public_pages_config_uses_a_publishable_key() -> None:
     assert "window.SUPABASE_CONFIG" in config
     assert "publishableKey" in config
     assert "service_role" not in config
+
+
+def test_source_monitor_uses_the_configured_supabase_client() -> None:
+    html = (ROOT / "docs" / "health.html").read_text()
+
+    assert ".from('company_source_health')" in html
+    assert "const SUPABASE_URL =" not in html
+    assert "const SUPABASE_ANON_KEY =" not in html
