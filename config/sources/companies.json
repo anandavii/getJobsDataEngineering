@@ -16,7 +16,7 @@
     "ats": "custom",
     "url": "https://www.amazon.jobs/en/search.json?base_query={keyword}&loc_query=United+States",
     "board_url": "https://www.amazon.jobs/en/",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Apple",
@@ -36,7 +36,7 @@
     "ats": "lever",
     "url": "https://api.lever.co/v0/postings/netflix?mode=json",
     "board_url": "https://jobs.netflix.com/",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "ECS Federal",
