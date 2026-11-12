@@ -1,5 +1,10 @@
 {
   "greenhouse": [
+    { "name": "Abacus Insights", "board_token": "abacusinsights", "job_board_url": "https://job-boards.greenhouse.io/abacusinsights", "enabled": true },
+    { "name": "Blueprint Technologies", "board_token": "bpcs", "job_board_url": "https://job-boards.greenhouse.io/bpcs", "enabled": true },
+    { "name": "Fanatics Betting & Gaming", "board_token": "fanaticsfbg", "job_board_url": "https://job-boards.greenhouse.io/fanaticsfbg", "enabled": true },
+    { "name": "K2 Space", "board_token": "k2spacecorporation", "job_board_url": "https://job-boards.greenhouse.io/k2spacecorporation", "enabled": true },
+    { "name": "Life360", "board_token": "life360", "job_board_url": "https://job-boards.greenhouse.io/life360", "enabled": true },
     { "name": "Stripe",      "board_token": "stripe",         "enabled": true  },
     { "name": "Airbnb",      "board_token": "airbnb",         "enabled": true  },
     { "name": "Lyft",        "board_token": "lyft",           "enabled": true  },
