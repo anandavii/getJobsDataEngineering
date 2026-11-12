@@ -214,34 +214,41 @@ class OrchestrateHelpersTests(unittest.TestCase):
         kept_urls = {j["job_url"] for j in filtered}
         self.assertEqual(kept_urls, {"https://e/1", "https://e/2"})
 
-    def test_fetch_plan_uses_effective_config_for_keyword_driven_sources(self) -> None:
-        config = {"search": {"keywords": ["old keyword"]}, "sources": {}}
+    def test_fetch_plan_uses_broader_terms_for_non_jsearch_sources(self) -> None:
+        config = {"search": {"keywords": ["old keyword"]}, "sources": {"jsearch": True}}
         effective_config = {
-            "search": {"keywords": ["expanded keyword"]},
+            "search": {
+                "keywords": ["limited JSearch query"],
+                "source_match_keywords": ["Data Engineer", "ETL", "Data Quality"],
+            },
             "sources": {},
             "sources_catalog": {"workday": [{"name": "Acme", "enabled": True}]},
         }
 
-        plan = orchestrate._fetch_plan(config, effective_config, jsearch_api_key="")
+        plan = orchestrate._fetch_plan(config, effective_config, jsearch_api_key="test-key")
 
         with (
+            mock.patch.object(orchestrate.fetch_jsearch, "run", return_value=[]) as jsearch_run,
             mock.patch.object(orchestrate.fetch_company, "run", return_value=[]) as company_run,
             mock.patch.object(orchestrate.fetch_workday, "run", return_value=[]) as workday_run,
             mock.patch.object(orchestrate.fetch_remotive, "run", return_value=[]) as remotive_run,
             mock.patch.object(orchestrate.fetch_jobicy, "run", return_value=[]) as jobicy_run,
             mock.patch.object(orchestrate.fetch_themuse, "run", return_value=[]) as themuse_run,
         ):
+            plan["jsearch"]()
             plan["company_careers"]()
             plan["workday"]()
             plan["remotive"]()
             plan["jobicy"]()
             plan["themuse"]()
 
-        company_run.assert_called_once_with(effective_config)
-        workday_run.assert_called_once_with(effective_config, ["expanded keyword"])
-        remotive_run.assert_called_once_with(effective_config)
-        jobicy_run.assert_called_once_with(effective_config)
-        themuse_run.assert_called_once_with(effective_config)
+        jsearch_run.assert_called_once_with(effective_config, "test-key")
+        source_config = company_run.call_args.args[0]
+        self.assertEqual(source_config["search"]["keywords"], ["Data Engineer", "ETL", "Data Quality"])
+        workday_run.assert_called_once_with(source_config, ["Data Engineer", "ETL", "Data Quality"])
+        remotive_run.assert_called_once_with(source_config)
+        jobicy_run.assert_called_once_with(source_config)
+        themuse_run.assert_called_once_with(source_config)
 
 
 class TestIsUsaOrRemote(unittest.TestCase):

@@ -1,73 +1,55 @@
 {
-  "identity": {
-    "display_name": "Data Engineering Job Search"
-  },
+  "identity": {"display_name": "Data Engineering Job Search"},
   "search": {
-    "keywords": [
-      "Data Engineer",
-      "Data Platform Engineer",
-      "Data Infrastructure Engineer",
-      "Analytics Engineer",
-      "Data Warehouse Engineer",
-      "BI Engineer",
-      "ETL Developer",
-      "ELT Engineer",
-      "Data Integration Engineer",
-      "Big Data Engineer",
-      "Streaming Data Engineer"
+    "keywords": ["Data Engineer", "ETL Developer", "Data Analyst"],
+    "source_match_keywords": [
+      "Data Engineer", "Data Analyst", "Data Analytics", "Data Quality", "Data Warehouse", "Data Integration",
+      "ETL", "ELT", "Databricks", "PySpark", "DataOps", "Database Developer"
     ],
     "role_taxonomy": {
       "families": [
-        "data_platform",
-        "warehouse_analytics",
-        "pipelines",
-        "distributed_streaming"
+        "data_platform", "warehouse_analytics", "pipelines", "distributed_streaming",
+        "data_quality", "data_analytics", "specialized_data_engineering"
       ],
       "title_variants": {
         "data_platform": [
-          "Data Engineer",
-          "Data Platform Engineer",
-          "Data Infrastructure Engineer"
+          "Data Engineer", "Data Platform Engineer", "Data Infrastructure Engineer", "Azure Data Engineer",
+          "Cloud Data Engineer", "Junior Data Engineer", "Associate Data Engineer", "Entry-Level Data Engineer",
+          "Data Engineer I", "Data Engineer II", "Graduate Data Engineer", "Data Engineering Associate",
+          "Data Engineering Analyst", "Data Pipeline Engineer", "Data Pipeline Developer"
         ],
         "warehouse_analytics": [
-          "Analytics Engineer",
-          "Data Warehouse Engineer",
-          "BI Engineer"
+          "Analytics Engineer", "Junior Analytics Engineer", "Data Analytics Engineer", "Data Warehouse Engineer", "Data Warehouse Developer",
+          "BI Engineer", "BI Developer"
         ],
         "pipelines": [
-          "ETL Developer",
-          "ETL Engineer",
-          "ELT Engineer",
-          "Data Integration Engineer",
-          "Data Pipeline Engineer"
+          "ETL Developer", "ETL Engineer", "ETL Programmer", "ELT Engineer", "ELT Developer",
+          "Data Integration Engineer", "Data Integration Developer", "Azure Data Factory Developer", "ADF Developer",
+          "Databricks Engineer", "Databricks Developer", "PySpark Developer", "Spark Developer",
+          "Data Processing Engineer", "SQL Developer"
         ],
         "distributed_streaming": [
-          "Big Data Engineer",
-          "Streaming Data Engineer",
-          "Distributed Data Engineer"
+          "Big Data Engineer", "Streaming Data Engineer", "Distributed Data Engineer", "Real-Time Data Engineer",
+          "Lakehouse Engineer"
+        ],
+        "data_quality": [
+          "Data Quality Engineer", "Data Quality Analyst", "Data Validation Engineer", "Data Validation Analyst",
+          "Data Quality Automation Engineer", "Data Test Engineer", "ETL Test Engineer", "ETL Tester",
+          "ETL QA Engineer", "ETL Automation Engineer", "Data Warehouse Tester", "Database QA Engineer",
+          "Data Reliability Engineer", "Data Reconciliation Analyst", "Data Integrity Analyst"
+        ],
+        "data_analytics": ["Data Analyst", "Junior Data Analyst", "Associate Data Analyst", "SQL Data Analyst"],
+        "specialized_data_engineering": [
+          "DataOps Engineer", "Cloud Data Platform Engineer", "Data Observability Engineer",
+          "Data Transformation Engineer", "Data Migration Engineer", "Data Migration Developer",
+          "Data Modeling Engineer", "Database Developer"
         ]
       },
       "skill_variants": {
-        "primary_stack": [
-          "python",
-          "sql",
-          "dbt",
-          "airflow",
-          "dagster",
-          "spark",
-          "kafka"
-        ],
+        "primary_stack": ["python", "sql", "dbt", "airflow", "dagster", "spark", "kafka"],
         "related_stack": [
-          "snowflake",
-          "bigquery",
-          "redshift",
-          "databricks",
-          "aws glue",
-          "terraform",
-          "data pipeline",
-          "data warehouse",
-          "etl",
-          "elt"
+          "snowflake", "bigquery", "redshift", "databricks", "aws glue", "terraform",
+          "data pipeline", "data warehouse", "etl", "elt"
         ],
         "genai_stack": []
       },
@@ -78,10 +60,7 @@
         "staff": ["staff", "principal"]
       }
     },
-    "seniority_policy": {
-      "include_levels": ["entry", "mid", "senior", "staff"],
-      "hard_exclude_levels": []
-    },
+    "seniority_policy": {"include_levels": ["entry", "mid", "senior", "staff"], "hard_exclude_levels": []},
     "free_sources": {
       "remotive_categories": ["software-dev"],
       "jobicy_tags": ["data-science", "engineering"],
@@ -93,50 +72,31 @@
     "mode": "title_or_description",
     "require_software_context_for_description_only": true,
     "include_patterns": [
-      "data engineer",
-      "data platform engineer",
-      "data infrastructure engineer",
-      "analytics engineer",
-      "data warehouse engineer",
-      "bi engineer",
-      "etl developer",
-      "etl engineer",
-      "elt engineer",
-      "data integration engineer",
-      "data pipeline engineer",
-      "big data engineer",
-      "streaming data engineer"
+      "data engineer", "data platform engineer", "data infrastructure engineer", "analytics engineer", "data analytics engineer",
+      "data warehouse engineer", "data warehouse developer", "bi engineer", "bi developer", "etl developer",
+      "etl engineer", "elt engineer", "data integration engineer", "data pipeline engineer", "big data engineer",
+      "streaming data engineer", "azure data engineer", "cloud data engineer", "junior data engineer",
+      "associate data engineer", "entry-level data engineer", "data engineer i", "data engineer ii",
+      "graduate data engineer", "data engineering associate", "data engineering analyst", "data pipeline developer",
+      "etl programmer", "elt developer", "data integration developer", "azure data factory developer", "adf developer",
+      "databricks engineer", "databricks developer", "pyspark developer", "spark developer", "data processing engineer",
+      "sql developer", "data quality engineer", "data quality analyst", "data validation engineer",
+      "data validation analyst", "data quality automation engineer", "data test engineer", "etl test engineer",
+      "etl tester", "etl qa engineer", "etl automation engineer", "data warehouse tester", "database qa engineer",
+      "data reliability engineer", "data reconciliation analyst", "data integrity analyst", "junior analytics engineer",
+      "data analyst", "real-time data engineer",
+      "lakehouse engineer", "dataops engineer", "cloud data platform engineer", "data observability engineer",
+      "data transformation engineer", "data migration engineer", "data migration developer", "data modeling engineer",
+      "database developer"
     ],
     "exclude_patterns": [
-      "data entry",
-      "data analyst",
-      "data scientist",
-      "business intelligence analyst",
-      "database administrator",
-      "database admin",
-      "civil engineer",
-      "mechanical engineer",
-      "electrical engineer",
-      "manufacturing engineer"
+      "data entry", "data scientist", "business intelligence analyst", "reporting analyst", "data warehouse analyst",
+      "business data analyst", "operations data analyst", "technical data analyst", "database administrator", "database admin",
+      "civil engineer", "mechanical engineer", "electrical engineer", "manufacturing engineer"
     ],
     "software_context_patterns": [
-      "python",
-      "sql",
-      "dbt",
-      "airflow",
-      "dagster",
-      "spark",
-      "kafka",
-      "snowflake",
-      "bigquery",
-      "redshift",
-      "databricks",
-      "aws glue",
-      "terraform",
-      "data pipeline",
-      "data warehouse",
-      "etl",
-      "elt"
+      "python", "sql", "dbt", "airflow", "dagster", "spark", "kafka", "snowflake", "bigquery", "redshift",
+      "databricks", "aws glue", "terraform", "data pipeline", "data warehouse", "etl", "elt"
     ]
   }
 }

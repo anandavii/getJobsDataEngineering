@@ -31,6 +31,100 @@ RULES = {
 
 
 class DomainRelevanceTests(unittest.TestCase):
+    def test_active_domain_accepts_all_approved_data_role_titles(self) -> None:
+        config = config_loader.load_config()
+        approved_titles = (
+            "Data Engineer",
+            "Azure Data Engineer",
+            "Cloud Data Engineer",
+            "Junior Data Engineer",
+            "Associate Data Engineer",
+            "Entry-Level Data Engineer",
+            "Data Engineer I",
+            "Data Engineer II",
+            "Graduate Data Engineer",
+            "Data Engineering Associate",
+            "Data Engineering Analyst",
+            "Data Pipeline Engineer",
+            "Data Pipeline Developer",
+            "Data Platform Engineer",
+            "Big Data Engineer",
+            "ETL Developer",
+            "ETL Engineer",
+            "ETL Programmer",
+            "ELT Developer",
+            "Data Integration Engineer",
+            "Data Integration Developer",
+            "Azure Data Factory Developer",
+            "ADF Developer",
+            "Databricks Engineer",
+            "Databricks Developer",
+            "PySpark Developer",
+            "Spark Developer",
+            "Data Processing Engineer",
+            "Data Warehouse Developer",
+            "Data Warehouse Engineer",
+            "SQL Developer",
+            "Data Quality Engineer",
+            "Data Quality Analyst",
+            "Data Validation Engineer",
+            "Data Validation Analyst",
+            "Data Quality Automation Engineer",
+            "Data Test Engineer",
+            "ETL Test Engineer",
+            "ETL Tester",
+            "ETL QA Engineer",
+            "ETL Automation Engineer",
+            "Data Warehouse Tester",
+            "Database QA Engineer",
+            "Data Reliability Engineer",
+            "Data Reconciliation Analyst",
+            "Data Integrity Analyst",
+            "Data Analytics Engineer",
+            "Analytics Engineer",
+            "Junior Analytics Engineer",
+            "BI Developer",
+            "BI Engineer",
+            "Data Analyst",
+            "Junior Data Analyst",
+            "Associate Data Analyst",
+            "SQL Data Analyst",
+            "Streaming Data Engineer",
+            "Real-Time Data Engineer",
+            "Lakehouse Engineer",
+            "Data Infrastructure Engineer",
+            "DataOps Engineer",
+            "Cloud Data Platform Engineer",
+            "Data Observability Engineer",
+            "Data Transformation Engineer",
+            "Data Migration Engineer",
+            "Data Migration Developer",
+            "Data Modeling Engineer",
+            "Database Developer",
+        )
+
+        for title in approved_titles:
+            keep, reason = domain_relevance.is_domain_relevant(
+                {"job_title": title, "description_snippet": ""}, config["domain_filter"]
+            )
+            self.assertTrue(keep, title)
+            self.assertEqual(reason, "title_match", title)
+
+    def test_active_domain_keeps_data_analyst_titles(self) -> None:
+        config = config_loader.load_config()
+        for title in ("Data Analyst", "Junior Data Analyst", "Associate Data Analyst", "Data Analyst I", "SQL Data Analyst"):
+            keep, _ = domain_relevance.is_domain_relevant(
+                {"job_title": title, "description_snippet": ""}, config["domain_filter"]
+            )
+            self.assertTrue(keep, title)
+
+        for title in ("Business Intelligence Analyst", "Reporting Analyst", "Business Data Analyst", "Operations Data Analyst"):
+            keep, reason = domain_relevance.is_domain_relevant(
+                {"job_title": title, "description_snippet": ""}, config["domain_filter"]
+            )
+            self.assertFalse(keep, title)
+            self.assertEqual(reason, "excluded_out_of_domain", title)
+
     def test_keeps_data_engineering_titles(self) -> None:
         for title in ("Data Platform Engineer", "Analytics Engineer", "Streaming Data Engineer"):
             keep, reason = domain_relevance.is_domain_relevant({"job_title": title, "description_snippet": ""}, RULES)

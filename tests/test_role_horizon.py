@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import role_horizon
+import config_loader
 
 
 DATA_ENGINEERING_TAXONOMY = {
@@ -53,6 +54,23 @@ def _config() -> dict:
 
 
 class RoleHorizonTests(unittest.TestCase):
+    def test_active_domain_classifies_new_role_families(self) -> None:
+        config = config_loader.load_config()
+        expected_families = {
+            "Data Quality Engineer": "data_quality",
+            "Data Analyst": "data_analytics",
+            "Data Analytics Engineer": "warehouse_analytics",
+            "DataOps Engineer": "specialized_data_engineering",
+            "Lakehouse Engineer": "distributed_streaming",
+        }
+
+        for title, expected_family in expected_families.items():
+            families, matched_titles, _ = role_horizon.classify_role_families(
+                {"job_title": title, "description_snippet": ""}, config
+            )
+            self.assertIn(expected_family, families, title)
+            self.assertIn(title, matched_titles, title)
+
     def test_generate_queries_respects_cap_and_includes_base_keywords(self) -> None:
         cfg = _config()
         cfg["search"]["query_generation"] = {"enabled": True, "max_queries_per_run": 3, "dedup_queries": True}

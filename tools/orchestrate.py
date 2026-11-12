@@ -554,14 +554,30 @@ def save_tmp(filename: str, data) -> None:
     log.info(f"Saved: {path}")
 
 
+def _with_source_match_keywords(effective_config: dict) -> dict:
+    """Use broader configured match terms for no-cost, non-JSearch sources."""
+    search = effective_config.get("search", {}) if isinstance(effective_config, dict) else {}
+    source_terms = search.get("source_match_keywords", []) if isinstance(search, dict) else []
+    keywords = [str(term).strip() for term in source_terms if str(term).strip()]
+    if not keywords:
+        return effective_config
+
+    source_config = dict(effective_config)
+    source_search = dict(search)
+    source_search["keywords"] = keywords
+    source_config["search"] = source_search
+    return source_config
+
+
 def _fetch_plan(config: dict, effective_config: dict, jsearch_api_key: str) -> dict[str, Callable[[], list[dict]]]:
     src_flags = config.get("sources", {}) if isinstance(config, dict) else {}
     catalog = effective_config.get("sources_catalog", {}) if isinstance(effective_config, dict) else {}
+    source_config = _with_source_match_keywords(effective_config)
+    keywords = source_config.get("search", {}).get("keywords", [])
 
     has_catalog_entries = {
         key: any(bool(x.get("enabled", True)) for x in val) for key, val in catalog.items() if isinstance(val, list)
     }
-
     plan: dict[str, Callable[[], list[dict]]] = {}
 
     if src_flags.get("jsearch", True):
@@ -571,52 +587,30 @@ def _fetch_plan(config: dict, effective_config: dict, jsearch_api_key: str) -> d
             log.warning("JSearch: JSEARCH_API_KEY not set — skipping")
 
     if src_flags.get("company_careers", True):
-        plan["company_careers"] = lambda: fetch_company.run(effective_config)
+        plan["company_careers"] = lambda: fetch_company.run(source_config)
 
-    if has_catalog_entries.get("greenhouse"):
-        plan["greenhouse"] = lambda: fetch_greenhouse.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("lever"):
-        plan["lever"] = lambda: fetch_lever.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("ashby"):
-        plan["ashby"] = lambda: fetch_ashby.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("breezyhr"):
-        plan["breezyhr"] = lambda: fetch_breezyhr.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("smartrecruiters"):
-        plan["smartrecruiters"] = lambda: fetch_smartrecruiters.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("workday"):
-        plan["workday"] = lambda: fetch_workday.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("workable"):
-        plan["workable"] = lambda: fetch_workable.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("icims"):
-        plan["icims"] = lambda: fetch_icims.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
-    if has_catalog_entries.get("jobvite"):
-        plan["jobvite"] = lambda: fetch_jobvite.run(
-            effective_config, effective_config.get("search", {}).get("keywords", [])
-        )
+    catalog_fetchers = {
+        "greenhouse": fetch_greenhouse,
+        "lever": fetch_lever,
+        "ashby": fetch_ashby,
+        "breezyhr": fetch_breezyhr,
+        "smartrecruiters": fetch_smartrecruiters,
+        "workday": fetch_workday,
+        "workable": fetch_workable,
+        "icims": fetch_icims,
+        "jobvite": fetch_jobvite,
+    }
+    for source_name, fetcher in catalog_fetchers.items():
+        if has_catalog_entries.get(source_name):
+            plan[source_name] = lambda fetcher=fetcher: fetcher.run(source_config, keywords)
 
-    # Free sources — no API key required; respect sources flag (default: enabled)
+    # Free sources — no API key required; respect sources flag (default: enabled).
     if src_flags.get("remotive", True):
-        plan["remotive"] = lambda: fetch_remotive.run(effective_config)
+        plan["remotive"] = lambda: fetch_remotive.run(source_config)
     if src_flags.get("jobicy", True):
-        plan["jobicy"] = lambda: fetch_jobicy.run(effective_config)
+        plan["jobicy"] = lambda: fetch_jobicy.run(source_config)
     if src_flags.get("themuse", True):
-        plan["themuse"] = lambda: fetch_themuse.run(effective_config)
+        plan["themuse"] = lambda: fetch_themuse.run(source_config)
 
     return plan
 
