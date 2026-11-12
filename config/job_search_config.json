@@ -1,0 +1,76 @@
+{
+  "active_domain": "data_engineering",
+
+  "search": {
+    "query_generation": {
+      "enabled": true,
+      "max_queries_per_run": 3,
+      "strategy": "balanced",
+      "dedup_queries": true
+    },
+    "seniority_policy": {
+      "include_levels": ["entry", "mid", "senior", "staff"],
+      "hard_exclude_levels": []
+    },
+    "location": "United States",
+    "date_posted": "yesterday",
+    "calendar_day_filter": {
+      "mode": "last_days",
+      "days": 8,
+      "timezone": "America/New_York",
+      "drop_if_missing_date": false
+    },
+    "max_age_hours": null,
+    "jsearch_num_pages": 1,
+    "job_types": ["Remote", "Hybrid", "On-site"]
+  },
+
+  "ranking": {
+    "enabled": true,
+    "weights": {
+      "title_family_match": 0.35,
+      "skill_stack_match": 0.35,
+      "seniority_alignment": 0.1,
+      "recency": 0.15,
+      "source_reliability": 0.05
+    },
+    "min_fit_score": 0.45
+  },
+
+  "domain_filter": {
+    "rejected_sample_limit": 200
+  },
+
+  "supabase": {
+    "matched_table": "matched_jobs",
+    "rejected_table": "rejected_jobs",
+    "cleanup_older_than_days": 90,
+    "batch_size": 50
+  },
+
+  "notification": {
+    "max_jobs_in_message": 10,
+    "include_sources": true,
+    "format": "rich",
+    "job_board_url": "https://anandavii.github.io/getJobsDataEngineering/"
+  },
+
+  "source_tiers": {
+    "tier1": ["jsearch", "company_careers", "greenhouse", "lever", "ashby", "smartrecruiters", "breezyhr", "workday", "remotive", "jobicy"],
+    "tier2": ["workable", "icims", "jobvite"],
+    "tier3": ["themuse"]
+  },
+
+  "health": {
+    "max_consecutive_failures": 3,
+    "alert_consecutive_failures_threshold": 2,
+    "tier_activation_threshold": 20,
+    "state_file": ".tmp/source_health_state.json"
+  },
+
+  "sources": {
+    "jsearch": true,
+    "company_careers": true,
+    "themuse": true
+  }
+}

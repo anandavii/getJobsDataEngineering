@@ -1,0 +1,55 @@
+{
+  "greenhouse": [
+    { "name": "Stripe",      "board_token": "stripe",         "enabled": true  },
+    { "name": "Airbnb",      "board_token": "airbnb",         "enabled": true  },
+    { "name": "Lyft",        "board_token": "lyft",           "enabled": true  },
+    { "name": "Cloudflare",  "board_token": "cloudflare",     "enabled": true  },
+    { "name": "Twilio",      "board_token": "twilio",         "enabled": true  },
+    { "name": "Asana",       "board_token": "asana",          "enabled": true  },
+    { "name": "Coinbase",    "board_token": "coinbase",       "enabled": true  },
+    { "name": "Robinhood",   "board_token": "robinhood",      "enabled": true  },
+    { "name": "Dropbox",     "board_token": "dropbox",        "enabled": true  },
+    { "name": "Reddit",      "board_token": "reddit",         "enabled": true  },
+    { "name": "Figma",       "board_token": "figma",          "enabled": true  },
+    { "name": "Versaterm",   "board_token": "versaterm",      "enabled": true  },
+    { "name": "Oura",        "board_token": "oura",           "enabled": true  },
+    { "name": "Calendly",    "board_token": "calendly",       "enabled": true  },
+    { "name": "Fueled",      "board_token": "fueledcareers",  "enabled": true  },
+    { "name": "OpenEye",        "board_token": "openeye",          "enabled": true  },
+    { "name": "Liberty Software", "board_token": "libertysoftware", "enabled": true  },
+    { "name": "Esri",            "board_token": "esri",            "enabled": true  },
+    { "name": "JustMarkets",     "board_token": "justmarkets",     "enabled": true  },
+    { "name": "Eulerity",        "board_token": "eulerity",        "enabled": true  },
+    { "name": "mthree",          "board_token": "mthreerecruitingportal", "enabled": true  },
+    { "name": "Cayuse",          "board_token": "cayuse",                "enabled": true  },
+    { "name": "Hudl",            "board_token": "hudl",                  "enabled": true  },
+    { "name": "Accenture Federal Services", "board_token": "accenturefederalservices", "enabled": true  },
+    { "name": "Gather AI",               "board_token": "gatherai",                "enabled": true  }
+  ],
+  "lever": [
+    { "name": "Atlassian",   "board_token": "atlassian",      "enabled": true  },
+    { "name": "WHOOP",       "lever_token": "whoop",          "enabled": true  }
+  ],
+  "ashby": [
+    { "name": "Linear",         "organization": "linear",         "enabled": true  },
+    { "name": "Vercel",         "organization": "vercel",         "enabled": true  },
+    { "name": "Retool",         "organization": "retool",         "enabled": true  },
+    { "name": "Juniper Square", "organization": "junipersquare",  "enabled": true  },
+    { "name": "DualEntry",      "organization": "dualentry",      "enabled": true  }
+  ],
+  "breezyhr": [],
+  "smartrecruiters": [],
+  "workday": [
+    { "name": "Adobe",     "tenant": "adobe", "site": "external_experienced", "enabled": true  },
+    { "name": "Netsmart",  "tenant": "ntst",  "site": "Careers",              "subdomain": "wd1",  "enabled": true  },
+    { "name": "Nightwing", "tenant": "nwis",  "site": "NW",                   "subdomain": "wd12", "enabled": true  },
+    { "name": "Disney Entertainment and ESPN Product & Technology", "tenant": "disney", "site": "disneycareer", "enabled": true },
+    { "name": "CVS Health", "tenant": "cvshealth", "site": "CVS_Health_Careers", "subdomain": "wd1", "enabled": true },
+    { "name": "Walmart", "tenant": "walmart", "site": "non-workdayinternal", "enabled": true },
+    { "name": "DMA - DuCharme, McMillen & Associates, Inc.", "tenant": "dmainc", "site": "DMA", "subdomain": "wd5", "enabled": true },
+    { "name": "Procore Technologies", "tenant": "procore", "site": "Procore_External_Careers", "subdomain": "wd12", "enabled": true }
+  ],
+  "workable": [],
+  "icims":    [],
+  "jobvite":  []
+}

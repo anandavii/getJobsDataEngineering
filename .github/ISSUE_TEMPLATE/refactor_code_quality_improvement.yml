@@ -1,0 +1,61 @@
+name: Refactor / Code Quality Improvement
+description: Track internal cleanup, design improvements, and maintainability work.
+title: "[Refactor]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for refactors, cleanup, internal improvements, and code quality work that is not a net-new feature.
+  - type: textarea
+    id: current_pain
+    attributes:
+      label: Current Pain Point
+      description: What is hard to maintain, confusing, fragile, or duplicated today?
+      placeholder: Describe the current design or code quality problem.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Where is the cleanup or refactor needed?
+      options:
+        - Dashboard
+        - Supabase
+        - Job pipeline
+        - Company discovery
+        - Notifications
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_change
+    attributes:
+      label: Proposed Improvement
+      description: What cleanup, restructuring, or quality improvement should be made?
+      placeholder: Describe the desired refactor or cleanup direction.
+    validations:
+      required: true
+  - type: textarea
+    id: expected_benefit
+    attributes:
+      label: Expected Benefit
+      description: What gets better after this change?
+      placeholder: "Examples: easier maintenance, lower risk, simpler logic, better testability."
+    validations:
+      required: true
+  - type: textarea
+    id: risks_constraints
+    attributes:
+      label: Risks or Constraints
+      description: Are there migration concerns, compatibility issues, or scope boundaries?
+      placeholder: Optional risks, dependencies, or constraints.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Context
+      description: Add links, code references, examples, or related issues if helpful.
+      placeholder: Optional supporting details.

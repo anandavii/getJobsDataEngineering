@@ -1,0 +1,58 @@
+# Environment & secrets — NEVER commit these
+.env
+*.env
+.env.*
+
+# Google OAuth tokens
+credentials.json
+token.json
+
+# Temporary / intermediate files
+.tmp/
+.playwright-cli/
+supabase/.temp/
+verify-ui.js
+screenshot.js
+screenshot*.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code local settings (machine-specific, no secrets but not portable)
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+node_modules/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+docs/superpowers/
+config/discovery/*
+!config/discovery/.gitkeep
+CONTRIBUTING.md
+.worktrees/

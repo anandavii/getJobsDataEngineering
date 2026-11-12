@@ -1,0 +1,142 @@
+{
+  "identity": {
+    "display_name": "Data Engineering Job Search"
+  },
+  "search": {
+    "keywords": [
+      "Data Engineer",
+      "Data Platform Engineer",
+      "Data Infrastructure Engineer",
+      "Analytics Engineer",
+      "Data Warehouse Engineer",
+      "BI Engineer",
+      "ETL Developer",
+      "ELT Engineer",
+      "Data Integration Engineer",
+      "Big Data Engineer",
+      "Streaming Data Engineer"
+    ],
+    "role_taxonomy": {
+      "families": [
+        "data_platform",
+        "warehouse_analytics",
+        "pipelines",
+        "distributed_streaming"
+      ],
+      "title_variants": {
+        "data_platform": [
+          "Data Engineer",
+          "Data Platform Engineer",
+          "Data Infrastructure Engineer"
+        ],
+        "warehouse_analytics": [
+          "Analytics Engineer",
+          "Data Warehouse Engineer",
+          "BI Engineer"
+        ],
+        "pipelines": [
+          "ETL Developer",
+          "ETL Engineer",
+          "ELT Engineer",
+          "Data Integration Engineer",
+          "Data Pipeline Engineer"
+        ],
+        "distributed_streaming": [
+          "Big Data Engineer",
+          "Streaming Data Engineer",
+          "Distributed Data Engineer"
+        ]
+      },
+      "skill_variants": {
+        "primary_stack": [
+          "python",
+          "sql",
+          "dbt",
+          "airflow",
+          "dagster",
+          "spark",
+          "kafka"
+        ],
+        "related_stack": [
+          "snowflake",
+          "bigquery",
+          "redshift",
+          "databricks",
+          "aws glue",
+          "terraform",
+          "data pipeline",
+          "data warehouse",
+          "etl",
+          "elt"
+        ],
+        "genai_stack": []
+      },
+      "seniority_tokens": {
+        "entry": ["junior", "associate", "entry", "i"],
+        "mid": ["ii", "engineer", "developer"],
+        "senior": ["senior", "lead", "sr"],
+        "staff": ["staff", "principal"]
+      }
+    },
+    "seniority_policy": {
+      "include_levels": ["entry", "mid", "senior", "staff"],
+      "hard_exclude_levels": []
+    },
+    "free_sources": {
+      "remotive_categories": ["software-dev"],
+      "jobicy_tags": ["data-science", "engineering"],
+      "themuse_categories": ["Data Science", "Engineering"]
+    }
+  },
+  "domain_filter": {
+    "enabled": true,
+    "mode": "title_or_description",
+    "require_software_context_for_description_only": true,
+    "include_patterns": [
+      "data engineer",
+      "data platform engineer",
+      "data infrastructure engineer",
+      "analytics engineer",
+      "data warehouse engineer",
+      "bi engineer",
+      "etl developer",
+      "etl engineer",
+      "elt engineer",
+      "data integration engineer",
+      "data pipeline engineer",
+      "big data engineer",
+      "streaming data engineer"
+    ],
+    "exclude_patterns": [
+      "data entry",
+      "data analyst",
+      "data scientist",
+      "business intelligence analyst",
+      "database administrator",
+      "database admin",
+      "civil engineer",
+      "mechanical engineer",
+      "electrical engineer",
+      "manufacturing engineer"
+    ],
+    "software_context_patterns": [
+      "python",
+      "sql",
+      "dbt",
+      "airflow",
+      "dagster",
+      "spark",
+      "kafka",
+      "snowflake",
+      "bigquery",
+      "redshift",
+      "databricks",
+      "aws glue",
+      "terraform",
+      "data pipeline",
+      "data warehouse",
+      "etl",
+      "elt"
+    ]
+  }
+}

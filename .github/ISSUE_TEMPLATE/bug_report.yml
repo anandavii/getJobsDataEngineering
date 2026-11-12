@@ -1,0 +1,72 @@
+name: Bug Report
+description: Report broken behavior, regressions, or incorrect results.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for broken behavior, regressions, or anything not working as expected.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+      placeholder: Briefly describe the issue.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Where is the issue happening?
+      options:
+        - Dashboard
+        - Supabase
+        - Job pipeline
+        - Company discovery
+        - Notifications
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps To Reproduce
+      description: List the smallest set of steps needed to reproduce the issue.
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected_actual
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What should have happened, and what happened instead?
+      placeholder: |
+        Expected:
+        Actual:
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      description: How bad is this issue?
+      options:
+        - Blocks core usage
+        - Major annoyance
+        - Minor issue
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Context
+      description: Add logs, screenshots, SQL, links, branch names, or anything else useful.
+      placeholder: Optional supporting details.
+

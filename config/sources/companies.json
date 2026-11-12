@@ -1,0 +1,132 @@
+[
+  {
+    "name": "Google",
+    "ats": "custom",
+    "url": "https://careers.google.com/api/v3/search/?location=United+States&q={keyword}",
+    "enabled": false
+  },
+  {
+    "name": "Meta",
+    "ats": "greenhouse",
+    "url": "https://boards-api.greenhouse.io/v1/boards/meta/jobs?content=true",
+    "enabled": false
+  },
+  {
+    "name": "Amazon",
+    "ats": "custom",
+    "url": "https://www.amazon.jobs/en/search.json?base_query={keyword}&loc_query=United+States",
+    "board_url": "https://www.amazon.jobs/en/",
+    "enabled": true
+  },
+  {
+    "name": "Apple",
+    "ats": "custom",
+    "url": "https://jobs.apple.com/api/role/search?filters=location%3DUSA&query={keyword}&page=1",
+    "board_url": "https://jobs.apple.com/en-us/search",
+    "enabled": true
+  },
+  {
+    "name": "Microsoft",
+    "ats": "custom",
+    "url": "https://gcsservices.careers.microsoft.com/search/api/v1/search?q={keyword}&lc=United+States&exp=Experienced+professionals",
+    "enabled": false
+  },
+  {
+    "name": "Netflix",
+    "ats": "lever",
+    "url": "https://api.lever.co/v0/postings/netflix?mode=json",
+    "board_url": "https://jobs.netflix.com/",
+    "enabled": true
+  },
+  {
+    "name": "ECS Federal",
+    "ats": "custom",
+    "url": "https://myjobs.adp.com/ecsfederal/cx/jobs",
+    "enabled": false,
+    "_note": "Disabled for the Data Engineering tracker: this legacy ADP adapter prefilters QA titles before requesting job details."
+  },
+  {
+    "name": "Morgan Stanley",
+    "ats": "custom",
+    "url": "https://morganstanley.eightfold.ai/careers",
+    "enabled": true,
+    "_note": "Eightfold PCSX API: morganstanley.eightfold.ai/api/pcsx/search?domain=morganstanley.com&query={keyword}&location=united+states&num=100"
+  },
+  {
+    "name": "Careerswift",
+    "ats": "custom",
+    "url": "https://app.careerswift.ai/apply/Careerswift",
+    "enabled": false,
+    "_note": "Auth-walled — jobs listing requires Clerk authentication; /api/jobs returns 401 Unauthorized; no public job listing API available"
+  },
+  {
+    "name": "Chase",
+    "ats": "custom",
+    "url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1002",
+    "enabled": true,
+    "_note": "Oracle HCM — REST API: jpmc.fa.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions, site CX_1002"
+  },
+  {
+    "name": "NOV",
+    "ats": "custom",
+    "url": "https://egay.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_4001",
+    "enabled": true,
+    "_note": "Oracle HCM (us6 region) — REST API: egay.fa.us6.oraclecloud.com/hcmRestApi/.../recruitingCEJobRequisitions, site CX_4001"
+  },
+  {
+    "name": "Oracle",
+    "ats": "custom",
+    "url": "https://fa-ertb-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2",
+    "enabled": true,
+    "_note": "Oracle HCM (ocs region) — REST API: fa-ertb-saasfaprod1.fa.ocs.oraclecloud.com/hcmRestApi/.../recruitingCEJobRequisitions, site CX_2"
+  },
+  {
+    "name": "Vertical Screen",
+    "ats": "custom",
+    "url": "https://careers-verticalscreen.icims.com/jobs/search",
+    "enabled": true,
+    "_note": "iCIMS HTML scraper — GET careers-verticalscreen.icims.com/jobs/search?ss=1&in_iframe=1&searchKeyword={kw}&searchRelation=keyword_all"
+  },
+  {
+    "name": "Milliman",
+    "ats": "custom",
+    "url": "https://recruiting2.ultipro.com/mil1017/JobBoard/f54234e9-dfde-b183-fd20-4fbdb19cba7a",
+    "enabled": true,
+    "_note": "UltiPro/UKG Pro — GET board page for CSRF token, then POST to JobBoardView/LoadSearchResults; org=mil1017, board=f54234e9-dfde-b183-fd20-4fbdb19cba7a"
+  },
+  {
+    "name": "GovCIO",
+    "ats": "custom",
+    "url": "https://careers.govcio.com/api/jobs",
+    "enabled": true,
+    "_note": "Jibe/iCIMS portal — GET careers.govcio.com/api/jobs?keyword=&location=United+States&limit=50&start={offset}; fetches all jobs and filters locally"
+  },
+  {
+    "name": "Charles Schwab",
+    "ats": "custom",
+    "url": "https://www.schwabjobs.com/search-jobs/results",
+    "enabled": true,
+    "_note": "TalentBrew (iCIMS) — GET /search-jobs/results?Keywords={keyword}&... with X-Requested-With: XMLHttpRequest; response JSON has 'results' key containing HTML job cards"
+  },
+  {
+    "name": "Cognizant",
+    "ats": "custom",
+    "url": "https://careers.cognizant.com/global-en/jobs/",
+    "enabled": false,
+    "_note": "Cloudflare protection — blocks both curl and Playwright; needs proxy or session auth to access"
+  },
+  {
+    "name": "ACE",
+    "ats": "custom",
+    "url": "https://apply.workable.com/ace-it-careers-1/",
+    "enabled": true,
+    "_note": "Workable POST API — apply.workable.com/api/v3/accounts/ace-it-careers-1/jobs; fetches all jobs and filters locally"
+  },
+  {
+    "name": "Brotherhood Mutual",
+    "ats": "custom",
+    "url": "https://recruiting.ultipro.com/bro1008bmic/JobBoard/67f5ad86-545d-42ef-bb07-cb84ada298ea",
+    "enabled": true,
+    "_note": "UltiPro/UKG Pro — GET board page for CSRF token, then POST to JobBoardView/LoadSearchResults; org=bro1008bmic, board=67f5ad86-545d-42ef-bb07-cb84ada298ea"
+  }
+]

@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Matches</title>
+  <link rel="icon" type="image/png" href="jobs-favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:          #F5F5F4;
+      --surface:     #FFFFFF;
+      --surface-2:   #FAFAF9;
+      --border:      #E7E5E4;
+      --text:        #0C0A09;
+      --text-2:      #44403C;
+      --muted:       #78716C;
+      --subtle:      #A8A29E;
+      --accent:      #18181B;
+      --accent-fg:   #FFFFFF;
+      --green:       #15803D;
+      --green-bg:    #F0FDF4;
+      --green-border:#BBF7D0;
+      --amber:       #B45309;
+      --amber-bg:    #FFFBEB;
+      --amber-border:#FDE68A;
+      --red:         #B91C1C;
+      --red-bg:      #FEF2F2;
+      --red-border:  #FECACA;
+      --font:        'Inter', system-ui, sans-serif;
+      --mono:        'JetBrains Mono', monospace;
+      --ease:        150ms ease;
+    }
+
+    [data-theme="dark"] {
+      --bg:          #09090B;
+      --surface:     #111113;
+      --surface-2:   #18181B;
+      --border:      #27272A;
+      --text:        #FAFAF9;
+      --text-2:      #D6D3D1;
+      --muted:       #A8A29E;
+      --subtle:      #57534E;
+      --accent:      #F5F5F4;
+      --accent-fg:   #09090B;
+      --green:       #4ADE80;
+      --green-bg:    #052E16;
+      --green-border:#14532D;
+      --amber:       #FCD34D;
+      --amber-bg:    #1C1400;
+      --amber-border:#78350F;
+      --red:         #F87171;
+      --red-bg:      #1C0A0A;
+      --red-border:  #7F1D1D;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      min-height: 100vh;
+      transition: background var(--ease), color var(--ease);
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    .header-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    .count-badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.15em 0.65em;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--green);
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      padding: 0.15em 0.65em;
+      text-decoration: none;
+      transition: opacity var(--ease);
+    }
+    .health-pill:hover { opacity: 0.8; }
+    .health-pill svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-link {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: color var(--ease);
+    }
+    .nav-link:hover { color: var(--text); }
+    .nav-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all var(--ease);
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--subtle); }
+    .theme-toggle svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .icon-sun  { display: none; }
+    .icon-moon { display: block; }
+    [data-theme="dark"] .icon-sun  { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+
+    /* ── Filters ─────────────────────────────────────────── */
+    .filters-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    .filters-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0.625rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .filters-bar select,
+    .filters-bar input[type="text"] {
+      height: 30px;
+      padding: 0 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--ease), background var(--ease), color var(--ease);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .filters-bar select {
+      padding-right: 1.6rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+    }
+
+    .filters-bar select:focus,
+    .filters-bar input[type="text"]:focus {
+      border-color: var(--subtle);
+      background: var(--surface);
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--subtle);
+      pointer-events: none;
+      display: flex;
+    }
+    .search-icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .search-wrap input { padding-left: 1.9rem !important; min-width: 200px; cursor: text; }
+
+    .sep { width: 1px; height: 18px; background: var(--border); margin: 0 0.2rem; flex-shrink: 0; }
+
+    /* ── Source multiselect ──────────────────────────────── */
+    .source-filter { position: relative; }
+    .source-filter-btn {
+      height: 30px;
+      padding: 0 0.55rem 0 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+      transition: border-color var(--ease), background var(--ease), color var(--ease);
+    }
+    .source-filter-btn:focus { outline: none; border-color: var(--subtle); background: var(--surface); }
+    .source-filter-btn.active { border-color: var(--accent); color: var(--text); background: var(--surface); }
+    .source-filter-btn svg { width: 11px; height: 11px; stroke: var(--subtle); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; transition: transform var(--ease); }
+    .source-filter-btn.open svg { transform: rotate(180deg); }
+    .source-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 50;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      min-width: 170px;
+      padding: 0.3rem 0;
+    }
+    .source-dropdown.open { display: block; }
+    .source-list { list-style: none; }
+    .source-option {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.78rem;
+      font-family: var(--font);
+      color: var(--text-2);
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--ease), color var(--ease);
+    }
+    .source-option:hover { background: var(--surface-2); color: var(--text); }
+    .source-check {
+      width: 14px; height: 14px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--ease), border-color var(--ease);
+    }
+    .source-option.selected .source-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .source-option.selected .source-check::after {
+      content: '';
+      display: block;
+      width: 8px; height: 5px;
+      border-left: 1.5px solid var(--accent-fg);
+      border-bottom: 1.5px solid var(--accent-fg);
+      transform: rotate(-45deg) translate(0.5px, -1px);
+    }
+
+    .sort-btns {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color var(--ease);
+    }
+    .sort-btns button {
+      padding: 0 0.75rem;
+      height: 30px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.775rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--muted);
+      transition: all var(--ease);
+      white-space: nowrap;
+    }
+    .sort-btns button + button { border-left: 1px solid var(--border); }
+    .sort-btns button:hover { color: var(--text); }
+    .sort-btns button.active { background: var(--accent); color: var(--accent-fg); }
+
+    /* ── Main ────────────────────────────────────────────── */
+    .main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.25rem 1.25rem;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
+    .table-outer {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+      background: var(--surface);
+      transition: border-color var(--ease), background var(--ease);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.825rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.55rem 1rem;
+      font-size: 0.685rem;
+      font-weight: 600;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      white-space: nowrap;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--surface-2); }
+
+    /* ── Cells ───────────────────────────────────────────── */
+    .cell-title {
+      min-width: 240px;
+    }
+
+    .cell-title a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--ease);
+    }
+    .cell-title a:hover { color: var(--green); }
+
+    .cell-co {
+      font-weight: 500;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+
+    .cell-mono {
+      font-family: var(--mono);
+      font-size: 0.755rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .cell-location {
+      font-family: var(--mono);
+      font-size: 0.755rem;
+      color: var(--muted);
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-chip {
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.15em 0.5em;
+      white-space: nowrap;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    .cell-family { color: var(--muted); font-size: 0.8rem; }
+
+    /* ── Badges ──────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18em 0.55em;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+    }
+    .badge-high { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
+    .badge-mid  { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
+    .badge-low  { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border); }
+    .badge-null { color: var(--subtle); font-family: var(--mono); font-size: 0.72rem; }
+    .badge-new  { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;
+                  font-size: 0.60rem; letter-spacing: 0.05em; vertical-align: middle;
+                  margin-right: 6px; padding: 0.15em 0.5em; }
+    [data-theme="dark"] .badge-new { background: #1E3A5F; color: #93C5FD; border-color: #1D4ED8; }
+
+    /* ── Status ──────────────────────────────────────────── */
+    .status-msg {
+      padding: 4rem 2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-text { color: var(--red); }
+
+    /* ── Last updated (inline in header) ────────────────── */
+    .updated-row {
+      font-size: 0.7rem;
+      color: var(--subtle);
+      font-family: var(--mono);
+      transition: color var(--ease);
+      white-space: nowrap;
+    }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .header-row, .filters-row, .main, .updated-row { padding-left: 0.75rem; padding-right: 0.75rem; }
+      .search-wrap input { min-width: 140px; }
+      .sep { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    .user-email {
+      font-size: 0.775rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .signout-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 0.7rem;
+      height: 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: var(--muted);
+      font-family: var(--font);
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .signout-btn:hover { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+
+    /* ── Tabs ────────────────────────────────────────────────── */
+    .tabs-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--ease), border-color var(--ease);
+    }
+    .tabs-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      display: flex;
+      gap: 0;
+    }
+    .tab-btn {
+      padding: 0.6rem 1rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      font-size: 0.825rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color var(--ease), border-color var(--ease);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+    .tab-count {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--subtle);
+    }
+
+    /* ── Apply button ────────────────────────────────────────── */
+    .apply-btn {
+      padding: 0.2em 0.65em;
+      height: 26px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .apply-btn:hover {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+    .apply-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Unapply button ──────────────────────────────────────── */
+    .unapply-btn {
+      padding: 0.2em 0.65em;
+      height: 26px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      color: var(--subtle);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .unapply-btn:hover {
+      background: var(--red-bg);
+      border-color: var(--red-border);
+      color: var(--red);
+    }
+    .unapply-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Reject button ───────────────────────────────────────── */
+    .reject-btn {
+      padding: 0.2em 0.5em;
+      height: 26px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      color: var(--subtle);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .reject-btn:hover {
+      background: var(--red-bg);
+      border-color: var(--red-border);
+      color: var(--red);
+    }
+    .reject-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Nav pill ────────────────────────────────────────────── */
+    .nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0 0.7rem;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .nav-pill:hover { color: var(--text); border-color: var(--subtle); background: var(--surface-2); }
+    .nav-pill svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    /* ── Header brand (title + email stacked) ────────────────── */
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      line-height: 1;
+    }
+    .header-brand .header-title {
+      padding-bottom: 0.18rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-brand .user-email {
+      font-size: 0.65rem;
+      color: var(--subtle);
+      font-family: var(--mono);
+    }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      background: var(--accent);
+      color: var(--accent-fg);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+      user-select: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  </style>
+</head>
+<body style="visibility:hidden">
+
+  <header>
+    <div class="header-row">
+      <div class="header-brand">
+        <span class="header-title">Job Matches</span>
+        <span id="user-email" class="user-email"></span>
+      </div>
+      <span id="count-badge" class="count-badge">…</span>
+      <a href="health.html" class="health-pill" aria-label="View pipeline health dashboard">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Health
+      </a>
+      <span id="updated-row" class="updated-row"></span>
+      <div class="header-actions">
+        <button id="signout-btn" class="signout-btn">Sign out</button>
+        <a href="rejected.html" class="nav-pill">
+          Rejected
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <button class="theme-toggle" id="theme-btn" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <div class="filters-row">
+      <select id="filter-family"><option value="">All Families</option></select>
+      <div class="source-filter" id="source-filter">
+        <button id="source-filter-btn" class="source-filter-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span id="source-filter-label">Source</span>
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="source-dropdown" class="source-dropdown" role="listbox" aria-multiselectable="true">
+          <ul id="source-list" class="source-list"></ul>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="search-wrap">
+        <span class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <input id="filter-search" type="text" placeholder="Search company or location…" />
+      </div>
+      <div class="sort-btns">
+        <button id="sort-date" class="active">Date</button>
+        <button id="sort-fit">Fit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <div class="tabs-row">
+      <button class="tab-btn active" id="tab-jobs">
+        Jobs <span class="tab-count" id="tab-jobs-count"></span>
+      </button>
+      <button class="tab-btn" id="tab-applied">
+        Applied <span class="tab-count" id="tab-applied-count"></span>
+      </button>
+      <button class="tab-btn" id="tab-rejected">
+        Rejected <span class="tab-count" id="tab-rejected-count"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="table-outer">
+      <div id="status" class="status-msg">
+        <div class="spinner"></div>
+        <span>Loading jobs…</span>
+      </div>
+      <table id="jobs-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Title</th><th>Company</th><th>Location</th><th>Posted</th>
+            <th>Source</th><th>Family</th><th>Fit</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="jobs-body"></tbody>
+      </table>
+    </div>
+    <div id="applied-section" style="display:none">
+      <div class="table-outer">
+        <div id="applied-status" class="status-msg" style="display:none">
+          <p>No applied jobs yet.</p>
+        </div>
+        <table id="applied-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Title</th><th>Company</th><th>Location</th><th>Posted</th>
+              <th>Source</th><th>Family</th><th>Fit</th><th>Applied</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="applied-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="rejected-section" style="display:none">
+      <div class="table-outer">
+        <div id="rejected-status" class="status-msg" style="display:none">
+          <p>No dismissed jobs yet.</p>
+        </div>
+        <table id="rejected-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Title</th><th>Company</th><th>Location</th>
+              <th>Source</th><th>Fit</th><th>Dismissed</th>
+            </tr>
+          </thead>
+          <tbody id="rejected-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toast-msg"></span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://ocydmipwjivmcgzhggml.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWRtaXB3aml2bWNnemhnZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY3OTMsImV4cCI6MjA5MTI1Mjc5M30.di8n5e3wQC378RVHit7ltb-9yuhwojsaXoRRhEEIh2E';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (async () => {
+      // ── Auth gate ─────────────────────────────────────────────────────────
+      // getUser() verifies the token server-side; getSession() only reads localStorage
+      let currentUser;
+      try {
+        const { data, error } = await client.auth.getUser();
+        if (error || !data.user) { window.location.href = 'login.html'; return; }
+        currentUser = data.user;
+      } catch (e) {
+        window.location.href = 'login.html'; return;
+      }
+      document.body.style.visibility = '';
+      document.getElementById('user-email').textContent = currentUser.email;
+      const currentUserId = currentUser.id;
+      document.getElementById('signout-btn').addEventListener('click', async () => {
+        const { error } = await client.auth.signOut();
+        if (error) console.error('Sign out error:', error);
+        window.location.href = 'login.html';
+      });
+
+      client.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') window.location.href = 'login.html';
+      });
+
+      // ── Theme ──────────────────────────────────────────────────────────────
+      const html = document.documentElement;
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') html.setAttribute('data-theme', 'dark');
+
+      document.getElementById('theme-btn').addEventListener('click', () => {
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        renderActiveTab(); // re-render so inline source chip styles pick up new theme
+      });
+
+      // ── State ─────────────────────────────────────────────────────────────
+      let allRows = [];
+      let sortBy  = 'date';
+      let sortDir = 'desc'; // 'asc' | 'desc'
+      let appliedUrls = new Set();   // Set of job_url strings for current user
+      let appliedRows = [];          // applied_jobs rows (for Applied tab render)
+      let rejectedUrls = new Set();  // Set of job_url strings dismissed by current user
+      let rejectedRows = [];         // user_rejected_jobs rows (for Rejected tab render)
+      let activeTab = 'jobs';
+      let selectedSources = new Set(); // empty = show all
+
+      // ── Helpers ───────────────────────────────────────────────────────────
+      function toTitleCase(s) {
+        if (!s) return '—';
+        return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+
+      const SOURCE_COLORS = {
+        greenhouse: { light: { bg:'#E6F4EA', text:'#137333' }, dark: { bg:'#0F3D2E', text:'#34A853' } },
+        workday:    { light: { bg:'#ECFEFF', text:'#0891B2' }, dark: { bg:'#083344', text:'#22D3EE' } },
+        ashby:      { light: { bg:'#E6F7F5', text:'#0F766E' }, dark: { bg:'#042F2E', text:'#2DD4BF' } },
+        lever:      { light: { bg:'#F3E8FF', text:'#6B21A8' }, dark: { bg:'#2E1065', text:'#A855F7' } },
+        jsearch:    { light: { bg:'#E8F0FE', text:'#1A73E8' }, dark: { bg:'#0B1F3A', text:'#4C8DFF' } },
+        linkedin:   { light: { bg:'#E8F4FD', text:'#0A66C2' }, dark: { bg:'#0A1E2F', text:'#4EA1FF' } },
+        builtin:    { light: { bg:'#EEF2FF', text:'#4F46E5' }, dark: { bg:'#1E1B4B', text:'#818CF8' } },
+        dice:       { light: { bg:'#FFF4E5', text:'#F59E0B' }, dark: { bg:'#3B2A05', text:'#FBBF24' } },
+      };
+      const SOURCE_COLORS_DEFAULT = { light: { bg:'#F3F4F6', text:'#6B7280' }, dark: { bg:'#1F2937', text:'#9CA3AF' } };
+
+      function sourceChipStyle(src) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const palette = SOURCE_COLORS[(src || '').toLowerCase()] || SOURCE_COLORS_DEFAULT;
+        const { bg, text } = isDark ? palette.dark : palette.light;
+        // border: text colour at ~28% opacity (hex suffix 47)
+        return `background:${bg};color:${text};border-color:${text}47;`;
+      }
+
+      function fitBadge(v) {
+        if (v == null) return '<span class="badge-null">—</span>';
+        const pct = Math.round(v * 100);
+        const cls = pct >= 80 ? 'high' : pct >= 60 ? 'mid' : 'low';
+        return `<span class="badge badge-${cls}">${pct}%</span>`;
+      }
+
+      function isNewJob(firstSeenAt, datePosted) {
+        const within24h = s => { if (!s) return false; const d = new Date(s); return !isNaN(d) && (Date.now() - d.getTime()) < 24 * 60 * 60 * 1000; };
+        return within24h(firstSeenAt) || within24h(datePosted);
+      }
+
+      function formatSalary(min, max, currency) {
+        if (min == null && max == null) return '';
+        const sym = (!currency || currency === 'USD') ? '$' : currency + ' ';
+        const fmt = n => sym + Math.round(n / 1000) + 'k';
+        if (min != null && max != null) return `${fmt(min)}–${fmt(max)}`;
+        if (min != null) return `${fmt(min)}+`;
+        return `up to ${fmt(max)}`;
+      }
+
+      function formatDate(s) {
+        if (!s) return '—';
+        const d = new Date(s);
+        return isNaN(d) ? '—' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+
+      function formatPostedDate(datePosted, firstSeenAt) {
+        if (datePosted) return formatDate(datePosted);
+        const approx = formatDate(firstSeenAt);
+        if (approx === '—') return '—';
+        return `<span title="Exact posting date unavailable — first seen by pipeline on this date" style="opacity:0.6">~${approx}</span>`;
+      }
+
+      function formatFetchedAt(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d)) return '';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          + ' at '
+          + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+
+      // ── UI updates ────────────────────────────────────────────────────────
+      function updateMeta(filtered) {
+        const total = allRows.length;
+        const showing = filtered.length;
+        document.getElementById('count-badge').textContent =
+          showing < total ? `${showing} / ${total}` : `${total} job${total !== 1 ? 's' : ''}`;
+
+        const latest = allRows.reduce((m, r) => (!r.fetched_at ? m : (!m || r.fetched_at > m ? r.fetched_at : m)), null);
+        const updated = document.getElementById('updated-row');
+        updated.textContent = latest ? 'Last updated ' + formatFetchedAt(latest) : '';
+      }
+
+      function populateFilters(rows) {
+        const famSel = document.getElementById('filter-family');
+        [...new Set(rows.map(r => r.role_family).filter(Boolean))].sort().forEach(f => {
+          const o = document.createElement('option');
+          o.value = f; o.textContent = toTitleCase(f);
+          famSel.appendChild(o);
+        });
+
+        const sourceList = document.getElementById('source-list');
+        [...new Set(rows.map(r => r.source).filter(Boolean))].sort().forEach(s => {
+          const li = document.createElement('li');
+          li.className = 'source-option';
+          li.dataset.value = s;
+          li.setAttribute('role', 'option');
+          const check = document.createElement('span');
+          check.className = 'source-check';
+          const label = document.createElement('span');
+          label.textContent = s;
+          li.appendChild(check);
+          li.appendChild(label);
+          li.addEventListener('click', e => {
+            e.stopPropagation();
+            if (selectedSources.has(s)) selectedSources.delete(s);
+            else selectedSources.add(s);
+            updateSourceBtn();
+            renderActiveTab();
+          });
+          sourceList.appendChild(li);
+        });
+      }
+
+      function updateSourceBtn() {
+        const btn   = document.getElementById('source-filter-btn');
+        const label = document.getElementById('source-filter-label');
+        const n = selectedSources.size;
+        label.textContent = n === 0 ? 'Source' : `Source · ${n}`;
+        btn.classList.toggle('active', n > 0);
+        document.querySelectorAll('.source-option').forEach(li => {
+          li.classList.toggle('selected', selectedSources.has(li.dataset.value));
+        });
+      }
+
+      function updateTabCounts() {
+        const jobCount = allRows.filter(r => !appliedUrls.has(r.url) && !rejectedUrls.has(r.url)).length;
+        const appliedCount = appliedUrls.size;
+        const rejectedCount = rejectedUrls.size;
+        document.getElementById('tab-jobs-count').textContent = jobCount;
+        document.getElementById('tab-applied-count').textContent = appliedCount || '';
+        document.getElementById('tab-rejected-count').textContent = rejectedCount || '';
+      }
+
+      function renderActiveTab() {
+        updateTabCounts();
+        if (activeTab === 'jobs') {
+          document.getElementById('jobs-table').closest('.table-outer').style.display = '';
+          document.getElementById('applied-section').style.display = 'none';
+          document.getElementById('rejected-section').style.display = 'none';
+          renderTable(applyFilters());
+        } else if (activeTab === 'applied') {
+          document.getElementById('jobs-table').closest('.table-outer').style.display = 'none';
+          document.getElementById('applied-section').style.display = '';
+          document.getElementById('rejected-section').style.display = 'none';
+          renderAppliedTab();
+        } else {
+          document.getElementById('jobs-table').closest('.table-outer').style.display = 'none';
+          document.getElementById('applied-section').style.display = 'none';
+          document.getElementById('rejected-section').style.display = '';
+          renderRejectedTab();
+        }
+      }
+
+      function applyFilters() {
+        const family = document.getElementById('filter-family').value;
+        const q      = document.getElementById('filter-search').value.toLowerCase();
+        return allRows
+          .filter(r => !appliedUrls.has(r.url) && !rejectedUrls.has(r.url))  // exclude applied and rejected
+          .filter(r => !family || r.role_family === family)
+          .filter(r => selectedSources.size === 0 || selectedSources.has(r.source))
+          .filter(r => !q || (r.company  || '').toLowerCase().includes(q)
+                          || (r.location || '').toLowerCase().includes(q))
+          .sort((a, b) => {
+            const m = sortDir === 'asc' ? -1 : 1;
+            if (sortBy === 'fit') {
+              const d = ((b.fit_score ?? -1) - (a.fit_score ?? -1)) * m;
+              return d !== 0 ? d : ((b.date_posted ?? b.first_seen_at ?? '') < (a.date_posted ?? a.first_seen_at ?? '') ? -1 : 1);
+            }
+            const d = ((b.date_posted ?? b.first_seen_at ?? '') < (a.date_posted ?? a.first_seen_at ?? '') ? -1 : 1) * m;
+            return d !== 0 ? d : (b.fit_score ?? -1) - (a.fit_score ?? -1);
+          });
+      }
+
+      function renderTable(rows) {
+        const status = document.getElementById('status');
+        const table  = document.getElementById('jobs-table');
+        const tbody  = document.getElementById('jobs-body');
+        updateMeta(rows);
+
+        if (rows.length === 0) {
+          table.style.display = 'none';
+          status.innerHTML = '<p>No jobs match your filters.</p>';
+          status.style.display = '';
+          return;
+        }
+
+        status.style.display = 'none';
+        table.style.display = '';
+        tbody.innerHTML = rows.map(r => `<tr>
+    <td class="cell-title">${isNewJob(r.first_seen_at, r.date_posted) ? '<span class="badge badge-new" title="Posted or first discovered in the last 24h">NEW</span>' : ''}<a href="${r.url}" target="_blank" rel="noopener">${r.job_title || '—'}</a></td>
+    <td class="cell-co">${r.company || '—'}</td>
+    <td class="cell-location" title="${r.location || ''}">${r.location || '—'}</td>
+    <td class="cell-mono">${formatPostedDate(r.date_posted, r.first_seen_at)}</td>
+    <td>${r.source ? `<span class="source-chip" style="${sourceChipStyle(r.source)}">${r.source}</span>` : '—'}</td>
+    <td class="cell-family">${toTitleCase(r.role_family)}</td>
+    <td>${fitBadge(r.fit_score)}</td>
+    <td style="white-space:nowrap"><button class="apply-btn" data-url="${r.url.replace(/"/g, '&quot;')}">✓ Applied</button> <button class="reject-btn" data-url="${r.url.replace(/"/g, '&quot;')}" title="Dismiss">✕</button></td>
+  </tr>`).join('');
+      }
+
+      async function markApplied(jobUrl) {
+        const { error } = await client
+          .from('applied_jobs')
+          .insert({ job_url: jobUrl, user_id: currentUserId });
+        if (error) {
+          console.error('markApplied error:', error);
+          return false;
+        }
+        appliedUrls.add(jobUrl);
+        if (allRows.find(r => r.url === jobUrl)) {
+          appliedRows.push({ job_url: jobUrl, applied_at: new Date().toISOString() });
+        }
+        renderActiveTab();
+        return true;
+      }
+
+      async function markRejected(jobUrl) {
+        const { error } = await client
+          .from('user_rejected_jobs')
+          .insert({ job_url: jobUrl, user_id: currentUserId });
+        if (error) {
+          console.error('markRejected error:', error);
+          return false;
+        }
+        rejectedUrls.add(jobUrl);
+        if (allRows.find(r => r.url === jobUrl)) {
+          rejectedRows.push({ job_url: jobUrl, rejected_at: new Date().toISOString() });
+        }
+        renderActiveTab();
+        return true;
+      }
+
+      function renderAppliedTab() {
+        const appliedStatus = document.getElementById('applied-status');
+        const appliedTable  = document.getElementById('applied-table');
+        const appliedBody   = document.getElementById('applied-body');
+
+        // Join applied_jobs rows with matched_jobs data
+        const rows = appliedRows.map(ar => {
+          const job = allRows.find(r => r.url === ar.job_url);
+          return job ? { ...job, applied_at: ar.applied_at } : null;
+        }).filter(Boolean);
+
+        if (rows.length === 0) {
+          appliedTable.style.display = 'none';
+          appliedStatus.style.display = '';
+          return;
+        }
+
+        appliedStatus.style.display = 'none';
+        appliedTable.style.display = '';
+
+        appliedBody.innerHTML = rows.map(r => `<tr>
+      <td class="cell-title"><a href="${r.url}" target="_blank" rel="noopener">${r.job_title || '—'}</a></td>
+      <td class="cell-co">${r.company || '—'}</td>
+      <td class="cell-location" title="${r.location || ''}">${r.location || '—'}</td>
+      <td class="cell-mono">${formatPostedDate(r.date_posted, r.first_seen_at)}</td>
+      <td>${r.source ? `<span class="source-chip" style="${sourceChipStyle(r.source)}">${r.source}</span>` : '—'}</td>
+      <td class="cell-family">${toTitleCase(r.role_family)}</td>
+      <td>${fitBadge(r.fit_score)}</td>
+      <td class="cell-mono">${formatDate(r.applied_at)}</td>
+      <td><button class="unapply-btn" data-url="${r.url.replace(/"/g, '&quot;')}">✕</button></td>
+    </tr>`).join('');
+      }
+
+      function renderRejectedTab() {
+        const rejectedStatus = document.getElementById('rejected-status');
+        const rejectedTable  = document.getElementById('rejected-table');
+        const rejectedBody   = document.getElementById('rejected-body');
+
+        const rows = rejectedRows.map(rr => {
+          const job = allRows.find(r => r.url === rr.job_url);
+          return job ? { ...job, rejected_at: rr.rejected_at } : null;
+        }).filter(Boolean);
+
+        if (rows.length === 0) {
+          rejectedTable.style.display = 'none';
+          rejectedStatus.style.display = '';
+          return;
+        }
+
+        rejectedStatus.style.display = 'none';
+        rejectedTable.style.display = '';
+
+        rejectedBody.innerHTML = rows.map(r => `<tr>
+      <td class="cell-title"><a href="${r.url}" target="_blank" rel="noopener">${r.job_title || '—'}</a></td>
+      <td class="cell-co">${r.company || '—'}</td>
+      <td class="cell-location" title="${r.location || ''}">${r.location || '—'}</td>
+      <td>${r.source ? `<span class="source-chip" style="${sourceChipStyle(r.source)}">${r.source}</span>` : '—'}</td>
+      <td>${fitBadge(r.fit_score)}</td>
+      <td class="cell-mono">${formatDate(r.rejected_at)}</td>
+    </tr>`).join('');
+      }
+
+      async function unmarkApplied(jobUrl) {
+        const { error } = await client
+          .from('applied_jobs')
+          .delete()
+          .eq('job_url', jobUrl);
+        if (error) {
+          console.error('unmarkApplied error:', error);
+          return false;
+        }
+        appliedUrls.delete(jobUrl);
+        appliedRows = appliedRows.filter(r => r.job_url !== jobUrl);
+        renderActiveTab();
+        return true;
+      }
+
+      async function loadJobs() {
+        const status = document.getElementById('status');
+
+        const [matchedResult, appliedResult, rejectedResult] = await Promise.all([
+          client
+            .from('matched_jobs')
+            .select('url,job_title,company,location,job_type,source,role_family,fit_score,salary_min,salary_max,salary_currency,date_posted,fetched_at,first_seen_at'),
+          client
+            .from('applied_jobs')
+            .select('job_url,applied_at'),
+          client
+            .from('user_rejected_jobs')
+            .select('job_url,rejected_at')
+        ]);
+
+        if (matchedResult.error) {
+          status.innerHTML = `<span class="error-text">Failed to load: ${matchedResult.error.message}</span>`;
+          return;
+        }
+        if (!matchedResult.data || matchedResult.data.length === 0) {
+          status.innerHTML = '<p>No jobs found.</p>';
+          return;
+        }
+
+        // Build applied set (ignore errors — table may not exist yet in some envs)
+        if (appliedResult.data) {
+          appliedRows = appliedResult.data;
+          appliedUrls = new Set(appliedResult.data.map(r => r.job_url));
+        }
+
+        // Build rejected set (ignore errors — table may not exist yet in some envs)
+        if (rejectedResult.data) {
+          rejectedRows = rejectedResult.data;
+          rejectedUrls = new Set(rejectedResult.data.map(r => r.job_url));
+        }
+
+        allRows = matchedResult.data;
+        populateFilters(allRows);
+        renderActiveTab();
+      }
+
+      // ── Toast ─────────────────────────────────────────────────────────────
+      let _toastTid;
+      function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(_toastTid);
+        _toastTid = setTimeout(() => t.classList.remove('show'), 2200);
+      }
+
+      // ── Apply / Unapply delegation ────────────────────────────────────────
+      document.getElementById('jobs-body').addEventListener('click', async e => {
+        const applyBtn  = e.target.closest('.apply-btn');
+        const rejectBtn = e.target.closest('.reject-btn');
+
+        if (applyBtn && !applyBtn.disabled) {
+          applyBtn.disabled = true;
+          const ok = await markApplied(applyBtn.dataset.url);
+          if (ok) showToast('Marked as applied');
+          else applyBtn.disabled = false;
+        } else if (rejectBtn && !rejectBtn.disabled) {
+          rejectBtn.disabled = true;
+          const ok = await markRejected(rejectBtn.dataset.url);
+          if (ok) showToast('Job dismissed');
+          else rejectBtn.disabled = false;
+        }
+      });
+
+      document.getElementById('applied-body').addEventListener('click', async e => {
+        const btn = e.target.closest('.unapply-btn');
+        if (!btn || btn.disabled) return;
+        btn.disabled = true;
+        const ok = await unmarkApplied(btn.dataset.url);
+        if (ok) showToast('Removed from applied');
+        else btn.disabled = false;
+      });
+
+      loadJobs();
+
+      // ── Events ────────────────────────────────────────────────────────────
+      ['filter-family', 'filter-search'].forEach(id =>
+        document.getElementById(id).addEventListener('input', () => renderActiveTab())
+      );
+
+      // Source dropdown toggle / close-on-outside-click
+      const sourceBtn      = document.getElementById('source-filter-btn');
+      const sourceDropdown = document.getElementById('source-dropdown');
+      sourceBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = sourceDropdown.classList.toggle('open');
+        sourceBtn.classList.toggle('open', open);
+        sourceBtn.setAttribute('aria-expanded', String(open));
+      });
+      document.addEventListener('click', () => {
+        sourceDropdown.classList.remove('open');
+        sourceBtn.classList.remove('open');
+        sourceBtn.setAttribute('aria-expanded', 'false');
+      });
+
+      function updateSortButtons() {
+        const arrow = sortDir === 'desc' ? ' ↓' : ' ↑';
+        document.getElementById('sort-date').textContent = 'Date' + (sortBy === 'date' ? arrow : '');
+        document.getElementById('sort-fit').textContent  = 'Fit'  + (sortBy === 'fit'  ? arrow : '');
+      }
+
+      document.getElementById('sort-date').addEventListener('click', () => {
+        if (sortBy === 'date') { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; }
+        else { sortBy = 'date'; sortDir = 'desc'; }
+        document.getElementById('sort-date').classList.add('active');
+        document.getElementById('sort-fit').classList.remove('active');
+        updateSortButtons();
+        renderActiveTab();
+      });
+
+      document.getElementById('sort-fit').addEventListener('click', () => {
+        if (sortBy === 'fit') { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; }
+        else { sortBy = 'fit'; sortDir = 'desc'; }
+        document.getElementById('sort-fit').classList.add('active');
+        document.getElementById('sort-date').classList.remove('active');
+        updateSortButtons();
+        renderActiveTab();
+      });
+
+      updateSortButtons();
+
+      document.getElementById('tab-jobs').addEventListener('click', () => {
+        activeTab = 'jobs';
+        document.getElementById('tab-jobs').classList.add('active');
+        document.getElementById('tab-applied').classList.remove('active');
+        document.getElementById('tab-rejected').classList.remove('active');
+        document.getElementById('source-filter').style.display = '';
+        renderActiveTab();
+      });
+      document.getElementById('tab-applied').addEventListener('click', () => {
+        activeTab = 'applied';
+        document.getElementById('tab-applied').classList.add('active');
+        document.getElementById('tab-jobs').classList.remove('active');
+        document.getElementById('tab-rejected').classList.remove('active');
+        document.getElementById('source-filter').style.display = 'none';
+        renderActiveTab();
+      });
+
+      document.getElementById('tab-rejected').addEventListener('click', () => {
+        activeTab = 'rejected';
+        document.getElementById('tab-rejected').classList.add('active');
+        document.getElementById('tab-jobs').classList.remove('active');
+        document.getElementById('tab-applied').classList.remove('active');
+        document.getElementById('source-filter').style.display = 'none';
+        renderActiveTab();
+      });
+    })();
+  </script>
+</body>
+</html>

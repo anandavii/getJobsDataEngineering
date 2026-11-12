@@ -1,0 +1,62 @@
+name: Enhancement
+description: Suggest a new feature, workflow improvement, or product enhancement.
+title: "[Enhancement]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for new capabilities, UX improvements, or meaningful product enhancements.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Opportunity
+      description: What problem should this solve, or what opportunity should it unlock?
+      placeholder: Describe the need behind this enhancement.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Where would this change mainly apply?
+      options:
+        - Dashboard
+        - Supabase
+        - Job pipeline
+        - Company discovery
+        - Notifications
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: desired_outcome
+    attributes:
+      label: Desired Outcome
+      description: What should be possible after this is implemented?
+      placeholder: Describe the expected end state.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_approach
+    attributes:
+      label: Proposed Approach
+      description: If you already have an idea for the solution, capture it here.
+      placeholder: Optional implementation direction or rough idea.
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact or Value
+      description: Why is this worth doing?
+      placeholder: Explain the user or maintenance benefit.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Context
+      description: Add screenshots, references, examples, or constraints if helpful.
+      placeholder: Optional supporting details.
+

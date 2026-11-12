@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rejected Jobs</title>
+  <link rel="icon" type="image/png" href="jobs-favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:          #F5F5F4;
+      --surface:     #FFFFFF;
+      --surface-2:   #FAFAF9;
+      --border:      #E7E5E4;
+      --text:        #0C0A09;
+      --text-2:      #44403C;
+      --muted:       #78716C;
+      --subtle:      #A8A29E;
+      --accent:      #18181B;
+      --accent-fg:   #FFFFFF;
+      --green:       #15803D;
+      --green-bg:    #F0FDF4;
+      --green-border:#BBF7D0;
+      --amber:       #B45309;
+      --amber-bg:    #FFFBEB;
+      --amber-border:#FDE68A;
+      --red:         #B91C1C;
+      --red-bg:      #FEF2F2;
+      --red-border:  #FECACA;
+      --blue:        #1D4ED8;
+      --blue-bg:     #EFF6FF;
+      --blue-border: #BFDBFE;
+      --purple:      #6D28D9;
+      --purple-bg:   #F5F3FF;
+      --purple-border:#DDD6FE;
+      --gray:        #4B5563;
+      --gray-bg:     #F9FAFB;
+      --gray-border: #E5E7EB;
+      --font:        'Inter', system-ui, sans-serif;
+      --mono:        'JetBrains Mono', monospace;
+      --ease:        150ms ease;
+    }
+
+    [data-theme="dark"] {
+      --bg:          #09090B;
+      --surface:     #111113;
+      --surface-2:   #18181B;
+      --border:      #27272A;
+      --text:        #FAFAF9;
+      --text-2:      #D6D3D1;
+      --muted:       #A8A29E;
+      --subtle:      #57534E;
+      --accent:      #F5F5F4;
+      --accent-fg:   #09090B;
+      --green:       #4ADE80;
+      --green-bg:    #052E16;
+      --green-border:#14532D;
+      --amber:       #FCD34D;
+      --amber-bg:    #1C1400;
+      --amber-border:#78350F;
+      --red:         #F87171;
+      --red-bg:      #1C0A0A;
+      --red-border:  #7F1D1D;
+      --blue:        #93C5FD;
+      --blue-bg:     #0C1A2E;
+      --blue-border: #1E3A5F;
+      --purple:      #C4B5FD;
+      --purple-bg:   #1A0E2E;
+      --purple-border:#3B1F6E;
+      --gray:        #9CA3AF;
+      --gray-bg:     #1F2937;
+      --gray-border: #374151;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      min-height: 100vh;
+      transition: background var(--ease), color var(--ease);
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    .header-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    .count-badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.15em 0.65em;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--green);
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      padding: 0.15em 0.65em;
+      text-decoration: none;
+      transition: opacity var(--ease);
+    }
+    .health-pill:hover { opacity: 0.8; }
+    .health-pill svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    .updated-row {
+      font-size: 0.7rem;
+      color: var(--subtle);
+      font-family: var(--mono);
+      transition: color var(--ease);
+      white-space: nowrap;
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0 0.7rem;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .nav-pill:hover { color: var(--text); border-color: var(--subtle); background: var(--surface-2); }
+    .nav-pill svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      line-height: 1;
+    }
+    .header-brand .header-title {
+      padding-bottom: 0.18rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-brand .user-email {
+      font-size: 0.65rem;
+      color: var(--subtle);
+      font-family: var(--mono);
+    }
+
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all var(--ease);
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--subtle); }
+    .theme-toggle svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .icon-sun  { display: none; }
+    .icon-moon { display: block; }
+    [data-theme="dark"] .icon-sun  { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+
+    /* ── Filters ─────────────────────────────────────────── */
+    .filters-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    .filters-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0.625rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .filters-bar select,
+    .filters-bar input[type="text"] {
+      height: 30px;
+      padding: 0 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--ease), background var(--ease), color var(--ease);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .filters-bar select {
+      padding-right: 1.6rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+    }
+
+    .filters-bar select:focus,
+    .filters-bar input[type="text"]:focus {
+      border-color: var(--subtle);
+      background: var(--surface);
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--subtle);
+      pointer-events: none;
+      display: flex;
+    }
+    .search-icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .search-wrap input { padding-left: 1.9rem !important; min-width: 200px; cursor: text; }
+
+    .sep { width: 1px; height: 18px; background: var(--border); margin: 0 0.2rem; flex-shrink: 0; }
+
+    .sort-btns {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color var(--ease);
+    }
+    .sort-btns button {
+      padding: 0 0.75rem;
+      height: 30px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.775rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--muted);
+      transition: all var(--ease);
+      white-space: nowrap;
+    }
+    .sort-btns button + button { border-left: 1px solid var(--border); }
+    .sort-btns button:hover { color: var(--text); }
+    .sort-btns button.active { background: var(--accent); color: var(--accent-fg); }
+
+    /* ── Main ────────────────────────────────────────────── */
+    .main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.25rem 1.25rem;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
+    .table-outer {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+      background: var(--surface);
+      transition: border-color var(--ease), background var(--ease);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.825rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.55rem 1rem;
+      font-size: 0.685rem;
+      font-weight: 600;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      white-space: nowrap;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--surface-2); }
+
+    /* ── Cells ───────────────────────────────────────────── */
+    .cell-title { min-width: 220px; }
+    .cell-title a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--ease);
+    }
+    .cell-title a:hover { color: var(--red); }
+
+    .cell-co { font-weight: 500; color: var(--text-2); white-space: nowrap; }
+
+    .cell-mono {
+      font-family: var(--mono);
+      font-size: 0.755rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .cell-location {
+      font-family: var(--mono);
+      font-size: 0.755rem;
+      color: var(--muted);
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cell-reason {
+      max-width: 260px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-chip {
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.15em 0.5em;
+      white-space: nowrap;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    /* ── Badges ──────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18em 0.55em;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+    }
+    .badge-high   { background: var(--green-bg);   color: var(--green);  border: 1px solid var(--green-border); }
+    .badge-mid    { background: var(--amber-bg);   color: var(--amber);  border: 1px solid var(--amber-border); }
+    .badge-low    { background: var(--red-bg);     color: var(--red);    border: 1px solid var(--red-border); }
+    .badge-null   { color: var(--subtle); font-family: var(--mono); font-size: 0.72rem; }
+    .badge-blue   { background: var(--blue-bg);    color: var(--blue);   border: 1px solid var(--blue-border); }
+    .badge-amber  { background: var(--amber-bg);   color: var(--amber);  border: 1px solid var(--amber-border); }
+    .badge-red    { background: var(--red-bg);     color: var(--red);    border: 1px solid var(--red-border); }
+    .badge-purple { background: var(--purple-bg);  color: var(--purple); border: 1px solid var(--purple-border); }
+    .badge-gray   { background: var(--gray-bg);    color: var(--gray);   border: 1px solid var(--gray-border); }
+
+    /* ── Status ──────────────────────────────────────────── */
+    .status-msg {
+      padding: 4rem 2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-text { color: var(--red); }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .header-row, .filters-row, .main { padding-left: 0.75rem; padding-right: 0.75rem; }
+      .search-wrap input { min-width: 140px; }
+      .sep { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    .user-email {
+      font-size: 0.775rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .signout-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 0.7rem;
+      height: 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: var(--muted);
+      font-family: var(--font);
+      white-space: nowrap;
+      transition: all var(--ease);
+    }
+    .signout-btn:hover { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+  </style>
+</head>
+<body style="visibility:hidden">
+
+  <header>
+    <div class="header-row">
+      <div class="header-brand">
+        <span class="header-title">Rejected Jobs</span>
+        <span id="user-email" class="user-email"></span>
+      </div>
+      <span id="count-badge" class="count-badge">…</span>
+      <a href="health.html" class="health-pill" aria-label="View pipeline health dashboard">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Health
+      </a>
+      <span id="updated-row" class="updated-row"></span>
+      <div class="header-actions">
+        <button id="signout-btn" class="signout-btn">Sign out</button>
+        <a href="index.html" class="nav-pill">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Matched Jobs
+        </a>
+        <button class="theme-toggle" id="theme-btn" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <div class="filters-row">
+      <select id="filter-rejection"><option value="">All Rejection Types</option></select>
+      <div class="sep"></div>
+      <div class="search-wrap">
+        <span class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <input id="filter-search" type="text" placeholder="Search company or location…" />
+      </div>
+      <div class="sort-btns">
+        <button id="sort-date" class="active">Date</button>
+        <button id="sort-fit">Fit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="table-outer">
+      <div id="status" class="status-msg">
+        <div class="spinner"></div>
+        <span>Loading jobs…</span>
+      </div>
+      <table id="jobs-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Title</th><th>Company</th><th>Location</th>
+            <th>Source</th><th>Fit</th><th>Rejection</th><th>Reason</th><th>Posted</th>
+          </tr>
+        </thead>
+        <tbody id="jobs-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://ocydmipwjivmcgzhggml.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWRtaXB3aml2bWNnemhnZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY3OTMsImV4cCI6MjA5MTI1Mjc5M30.di8n5e3wQC378RVHit7ltb-9yuhwojsaXoRRhEEIh2E';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (async () => {
+      // ── Auth gate ───────────────────────────────────────────────────────────
+      // getUser() verifies the token server-side; getSession() only reads localStorage
+      let currentUser;
+      try {
+        const { data, error } = await client.auth.getUser();
+        if (error || !data.user) { window.location.href = 'login.html'; return; }
+        currentUser = data.user;
+      } catch (e) {
+        window.location.href = 'login.html'; return;
+      }
+      document.body.style.visibility = '';
+      document.getElementById('user-email').textContent = currentUser.email;
+      document.getElementById('signout-btn').addEventListener('click', async () => {
+        const { error } = await client.auth.signOut();
+        if (error) console.error('Sign out error:', error);
+        window.location.href = 'login.html';
+      });
+
+      client.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') window.location.href = 'login.html';
+      });
+
+      // ── Theme ───────────────────────────────────────────────────────────────
+      const html = document.documentElement;
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') html.setAttribute('data-theme', 'dark');
+      document.getElementById('theme-btn').addEventListener('click', () => {
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      // ── State ───────────────────────────────────────────────────────────────
+      let allRows = [];
+      let sortBy  = 'date';
+      let sortDir = 'desc';
+
+      // ── Helpers ─────────────────────────────────────────────────────────────
+      function toTitleCase(s) {
+        if (!s) return '—';
+        return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+      function fitBadge(v) {
+        if (v == null) return '<span class="badge-null">—</span>';
+        const pct = Math.round(v * 100);
+        const cls = pct >= 80 ? 'high' : pct >= 60 ? 'mid' : 'low';
+        return `<span class="badge badge-${cls}">${pct}%</span>`;
+      }
+      function rejectionBadge(type) {
+        if (!type) return '—';
+        const map = {
+          location_filter:  ['Location',  'badge-blue'],
+          relevance_filter: ['Relevance', 'badge-amber'],
+          score_filter:     ['Score',     'badge-red'],
+          calendar_filter:  ['Calendar',  'badge-purple'],
+          duplicate:        ['Duplicate', 'badge-gray'],
+        };
+        const [label, cls] = map[type] || [toTitleCase(type), 'badge-gray'];
+        return `<span class="badge ${cls}">${label}</span>`;
+      }
+      function formatDate(s) {
+        if (!s) return '—';
+        const d = new Date(s);
+        return isNaN(d) ? '—' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      function formatFetchedAt(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d)) return '';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          + ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+      function truncate(s, max) {
+        if (!s) return '—';
+        return s.length <= max ? s : s.slice(0, max) + '…';
+      }
+
+      // ── UI updates ───────────────────────────────────────────────────────────
+      function updateMeta(filtered) {
+        const total = allRows.length, showing = filtered.length;
+        document.getElementById('count-badge').textContent =
+          showing < total ? `${showing} / ${total}` : `${total} job${total !== 1 ? 's' : ''}`;
+        const latest = allRows.reduce((m, r) => (!r.fetched_at ? m : (!m || r.fetched_at > m ? r.fetched_at : m)), null);
+        document.getElementById('updated-row').textContent =
+          latest ? 'Last updated ' + formatFetchedAt(latest) : '';
+      }
+      function populateFilters(rows) {
+        const rejSel = document.getElementById('filter-rejection');
+        [...new Set(rows.map(r => r.rejection_type).filter(Boolean))].sort().forEach(rt => {
+          const o = document.createElement('option');
+          o.value = rt; o.textContent = toTitleCase(rt);
+          rejSel.appendChild(o);
+        });
+      }
+      function applyFilters() {
+        const rejection = document.getElementById('filter-rejection').value;
+        const q = document.getElementById('filter-search').value.toLowerCase();
+        return allRows
+          .filter(r => !rejection || r.rejection_type === rejection)
+          .filter(r => !q || (r.company || '').toLowerCase().includes(q)
+                          || (r.location || '').toLowerCase().includes(q))
+          .sort((a, b) => {
+            const m = sortDir === 'asc' ? -1 : 1;
+            if (sortBy === 'fit') {
+              const d = ((b.fit_score ?? -1) - (a.fit_score ?? -1)) * m;
+              return d !== 0 ? d : ((b.date_posted ?? '') < (a.date_posted ?? '') ? -1 : 1);
+            }
+            const d = ((b.date_posted ?? '') < (a.date_posted ?? '') ? -1 : 1) * m;
+            return d !== 0 ? d : (b.fit_score ?? -1) - (a.fit_score ?? -1);
+          });
+      }
+      function renderTable(rows) {
+        const status = document.getElementById('status');
+        const table  = document.getElementById('jobs-table');
+        const tbody  = document.getElementById('jobs-body');
+        updateMeta(rows);
+        if (rows.length === 0) {
+          table.style.display = 'none';
+          status.innerHTML = '<p>No jobs match your filters.</p>';
+          status.style.display = '';
+          return;
+        }
+        status.style.display = 'none';
+        table.style.display = '';
+        tbody.innerHTML = rows.map(r => `<tr>
+          <td class="cell-title"><a href="${r.url}" target="_blank" rel="noopener">${r.job_title || '—'}</a></td>
+          <td class="cell-co">${r.company || '—'}</td>
+          <td class="cell-location" title="${r.location || ''}">${r.location || '—'}</td>
+          <td>${r.source ? `<span class="source-chip">${r.source}</span>` : '—'}</td>
+          <td>${fitBadge(r.fit_score)}</td>
+          <td>${rejectionBadge(r.rejection_type)}</td>
+          <td class="cell-reason" title="${(r.rejection_reason || '').replace(/"/g, '&quot;')}">${truncate(r.rejection_reason, 80)}</td>
+          <td class="cell-mono">${formatDate(r.date_posted)}</td>
+        </tr>`).join('');
+      }
+      async function loadJobs() {
+        const { data, error } = await client
+          .from('rejected_jobs')
+          .select('url,job_title,company,location,job_type,source,fit_score,rejection_type,rejection_reason,date_posted,fetched_at');
+        const status = document.getElementById('status');
+        if (error) { status.innerHTML = `<span class="error-text">Failed to load: ${error.message}</span>`; return; }
+        if (!data || data.length === 0) { status.innerHTML = '<p>No rejected jobs found.</p>'; return; }
+        allRows = data;
+        populateFilters(data);
+        renderTable(applyFilters());
+      }
+      loadJobs();
+
+      // ── Events ──────────────────────────────────────────────────────────────
+      ['filter-rejection', 'filter-search'].forEach(id =>
+        document.getElementById(id).addEventListener('input', () => renderTable(applyFilters()))
+      );
+      function updateSortButtons() {
+        const arrow = sortDir === 'desc' ? ' ↓' : ' ↑';
+        document.getElementById('sort-date').textContent = 'Date' + (sortBy === 'date' ? arrow : '');
+        document.getElementById('sort-fit').textContent  = 'Fit'  + (sortBy === 'fit'  ? arrow : '');
+      }
+      document.getElementById('sort-date').addEventListener('click', () => {
+        if (sortBy === 'date') { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; }
+        else { sortBy = 'date'; sortDir = 'desc'; }
+        document.getElementById('sort-date').classList.add('active');
+        document.getElementById('sort-fit').classList.remove('active');
+        updateSortButtons(); renderTable(applyFilters());
+      });
+      document.getElementById('sort-fit').addEventListener('click', () => {
+        if (sortBy === 'fit') { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; }
+        else { sortBy = 'fit'; sortDir = 'desc'; }
+        document.getElementById('sort-fit').classList.add('active');
+        document.getElementById('sort-date').classList.remove('active');
+        updateSortButtons(); renderTable(applyFilters());
+      });
+      updateSortButtons();
+    })();
+  </script>
+</body>
+</html>

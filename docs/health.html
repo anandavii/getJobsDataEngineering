@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Health</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/><polyline points='9 12 11 14 15 10'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:          #F5F5F4;
+      --surface:     #FFFFFF;
+      --surface-2:   #FAFAF9;
+      --border:      #E7E5E4;
+      --text:        #0C0A09;
+      --text-2:      #44403C;
+      --muted:       #78716C;
+      --subtle:      #A8A29E;
+      --accent:      #18181B;
+      --accent-fg:   #FFFFFF;
+      --green:       #15803D;
+      --green-bg:    #F0FDF4;
+      --green-border:#BBF7D0;
+      --amber:       #B45309;
+      --amber-bg:    #FFFBEB;
+      --amber-border:#FDE68A;
+      --red:         #B91C1C;
+      --red-bg:      #FEF2F2;
+      --red-border:  #FECACA;
+      --indigo:      #4F46E5;
+      --indigo-bg:   #EEF2FF;
+      --indigo-border:#C7D2FE;
+      --font:        'Inter', system-ui, sans-serif;
+      --mono:        'JetBrains Mono', monospace;
+      --ease:        150ms ease;
+    }
+
+    [data-theme="dark"] {
+      --bg:          #09090B;
+      --surface:     #111113;
+      --surface-2:   #18181B;
+      --border:      #27272A;
+      --text:        #FAFAF9;
+      --text-2:      #D6D3D1;
+      --muted:       #A8A29E;
+      --subtle:      #57534E;
+      --accent:      #F5F5F4;
+      --accent-fg:   #09090B;
+      --green:       #4ADE80;
+      --green-bg:    #052E16;
+      --green-border:#14532D;
+      --amber:       #FCD34D;
+      --amber-bg:    #1C1400;
+      --amber-border:#78350F;
+      --red:         #F87171;
+      --red-bg:      #1C0A0A;
+      --red-border:  #7F1D1D;
+      --indigo:      #818CF8;
+      --indigo-bg:   #1e1b4b;
+      --indigo-border:#3730a3;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      min-height: 100vh;
+      transition: background var(--ease), color var(--ease);
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    .header-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-link {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: color var(--ease);
+    }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--text); }
+    .nav-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all var(--ease);
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--subtle); }
+    .theme-toggle svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .icon-sun  { display: none; }
+    .icon-moon { display: block; }
+    [data-theme="dark"] .icon-sun  { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+
+    /* ── Main ────────────────────────────────────────────── */
+    .main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.25rem 1.25rem;
+    }
+
+    /* ── Tab bar ─────────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.5rem 1rem;
+      margin-bottom: -1px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color var(--ease), border-color var(--ease);
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    .tab-bar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 2px;
+    }
+
+    .last-updated {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    /* ── Table outer ─────────────────────────────────────── */
+    .table-outer {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+      background: var(--surface);
+      transition: border-color var(--ease), background var(--ease);
+    }
+
+    /* ── Status msg ──────────────────────────────────────── */
+    .status-msg {
+      padding: 4rem 2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-text { color: var(--red); }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .header-row, .main { padding-left: 0.75rem; padding-right: 0.75rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    /* ── Health-specific ─────────────────────────────────── */
+    .status-badge { display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600; }
+    .status-badge.healthy { background: var(--green-bg); color: var(--green); }
+    .status-badge.monitor { background: var(--amber-bg); color: var(--amber); }
+    .status-badge.critical { background: var(--red-bg); color: var(--red); }
+    .badge-live   { background:#d1fae5;color:#065f46; }
+    .badge-warn   { background:#fef3c7;color:#92400e; }
+    .badge-down   { background:#fee2e2;color:#991b1b; }
+    .badge-stale  { background:#e0e7ff;color:#3730a3; }
+
+    [data-theme="dark"] .badge-live  { background:#052E16;color:#4ADE80; }
+    [data-theme="dark"] .badge-warn  { background:#1C1400;color:#FCD34D; }
+    [data-theme="dark"] .badge-down  { background:#1C0A0A;color:#F87171; }
+    [data-theme="dark"] .badge-stale { background:#1e1b4b;color:#a5b4fc; }
+
+    .health-table { width:100%;border-collapse:collapse;font-size:0.825rem; }
+    .health-table th {
+      text-align:left;padding:0.55rem 1rem;
+      font-size:0.685rem;font-weight:600;
+      color:var(--subtle);
+      text-transform:uppercase;letter-spacing:0.07em;
+      white-space:nowrap;
+      background:var(--surface-2);
+      border-bottom:1px solid var(--border);
+      transition:background var(--ease),border-color var(--ease),color var(--ease);
+    }
+    .health-table td {
+      padding:0.75rem 1rem;
+      border-bottom:1px solid var(--border);
+      vertical-align:middle;
+      transition:background var(--ease),border-color var(--ease);
+    }
+    .health-table tr:last-child td { border-bottom:none; }
+    .health-table tr.data-row { cursor:pointer; }
+    .health-table tr.data-row:hover td { background:var(--surface-2); }
+    .detail-row { display:none; }
+    .detail-row.open { display:table-row; }
+    .detail-cell {
+      padding:0.75rem 1rem;
+      font-size:0.8rem;
+      color:var(--muted);
+      background:var(--surface-2);
+      border-bottom:1px solid var(--border);
+    }
+
+    .alert-banner {
+      border-radius:6px;
+      padding:12px 16px;
+      margin-bottom:20px;
+      font-size:0.875rem;
+      background:var(--amber-bg);
+      border:1px solid var(--amber-border);
+      color:var(--amber);
+    }
+
+    .cell-mono {
+      font-family:var(--mono);
+      font-size:0.755rem;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    /* ── Analytics tab ───────────────────────────────────── */
+    .stat-chips {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      border-radius: 8px;
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      min-width: 120px;
+      transition: background var(--ease), border-color var(--ease);
+    }
+    .stat-chip-green { background: var(--green-bg); border-color: var(--green-border); }
+    .stat-chip-blue  { background: var(--indigo-bg); border-color: var(--indigo-border); }
+    .stat-chip-amber { background: var(--amber-bg); border-color: var(--amber-border); }
+
+    .stat-chip-value {
+      font-size: 1.375rem;
+      font-weight: 700;
+      line-height: 1.2;
+      font-family: var(--mono);
+    }
+    .stat-chip-green .stat-chip-value { color: var(--green); }
+    .stat-chip-blue  .stat-chip-value { color: var(--indigo); }
+    .stat-chip-amber .stat-chip-value { color: var(--amber); }
+
+    .stat-chip-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* source badges */
+    .source-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      white-space: nowrap;
+      margin: 1px 2px 1px 0;
+    }
+    .source-jsearch    { background:#dbeafe;color:#1d4ed8; }
+    .source-greenhouse { background:#dcfce7;color:#15803d; }
+    .source-lever      { background:#ede9fe;color:#6d28d9; }
+    .source-workday    { background:#fce7f3;color:#9d174d; }
+    .source-dice       { background:#fef3c7;color:#92400e; }
+    .source-ashby      { background:#ccfbf1;color:#0f766e; }
+    .source-linkedin   { background:#bfdbfe;color:#1e40af; }
+    .source-builtin    { background:#e0e7ff;color:#3730a3; }
+    .source-breezyhr   { background:#e0f2fe;color:#0369a1; }
+    .source-default    { background:var(--surface-2);color:var(--muted); }
+
+    [data-theme="dark"] .source-jsearch    { background:#1e3a5f;color:#93c5fd; }
+    [data-theme="dark"] .source-greenhouse { background:#052e16;color:#4ade80; }
+    [data-theme="dark"] .source-lever      { background:#2e1065;color:#c4b5fd; }
+    [data-theme="dark"] .source-workday    { background:#500724;color:#f9a8d4; }
+    [data-theme="dark"] .source-dice       { background:#1c1400;color:#fcd34d; }
+    [data-theme="dark"] .source-ashby      { background:#022c22;color:#5eead4; }
+    [data-theme="dark"] .source-linkedin   { background:#172554;color:#93c5fd; }
+    [data-theme="dark"] .source-builtin    { background:#1e1b4b;color:#a5b4fc; }
+    [data-theme="dark"] .source-breezyhr   { background:#082f49;color:#7dd3fc; }
+    [data-theme="dark"] .source-default    { background:var(--surface-2);color:var(--muted); }
+
+    .show-more-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 18px;
+      font-size: 0.8rem;
+      color: var(--indigo);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color var(--ease), color var(--ease);
+    }
+    .show-more-btn:hover { border-color: var(--indigo); }
+
+    .analytics-table td:nth-child(3),
+    .analytics-table td:nth-child(4) { text-align: right; }
+    .analytics-table th:nth-child(3),
+    .analytics-table th:nth-child(4) { text-align: right; }
+
+    .user-email {
+      font-size: 0.775rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .signout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      font-family: var(--font);
+      padding: 0;
+      transition: color var(--ease);
+    }
+    .signout-btn:hover { color: var(--text); }
+
+    /* ── Source Monitor tab ───────────────────────────────── */
+    .monitor-health-banner {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 10px 18px;
+      margin: 0 0 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      flex-wrap: wrap;
+    }
+    .monitor-health-banner.all-healthy  { background: var(--green-bg);  border-color: var(--green-border);  color: var(--green); }
+    .monitor-health-banner.has-monitor  { background: var(--amber-bg);  border-color: var(--amber-border);  color: var(--amber); }
+    .monitor-health-banner.has-critical { background: var(--red-bg);    border-color: var(--red-border);    color: var(--red); }
+    .monitor-health-banner .banner-main { font-size: 1rem; font-weight: 700; }
+    .monitor-health-banner .banner-detail { font-size: 0.78rem; opacity: 0.8; font-weight: 400; }
+
+    .monitor-stat-strip {
+      display: flex;
+      gap: 12px;
+      margin: 0.35rem 0 1.25rem;
+      flex-wrap: wrap;
+    }
+    .monitor-stat-card {
+      position: relative;
+      overflow: hidden;
+      min-width: 150px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: background var(--ease), border-color var(--ease);
+    }
+    .monitor-stat-card.healthy  { color: var(--green);  background-color: var(--green-bg);  border-color: var(--green-border); }
+    .monitor-stat-card.monitor  { color: var(--amber);  background-color: var(--amber-bg);  border-color: var(--amber-border); }
+    .monitor-stat-card.critical { color: var(--red);    background-color: var(--red-bg);    border-color: var(--red-border); }
+    .monitor-stat-card .stat-chip-value { font-size: 1.75rem; font-weight: 700; line-height: 1.2; font-family: var(--mono); color: currentColor; }
+    .monitor-stat-card .stat-chip-label { font-size: 0.72rem; color: currentColor; opacity: 0.75; margin-top: 2px; }
+
+    /* Heatmap section */
+    .monitor-heatmap-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .monitor-section-title {
+      margin: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .monitor-heatmap-legend {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+    .monitor-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+    .monitor-legend-swatch {
+      width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid transparent;
+    }
+    .monitor-legend-swatch.good     { background: var(--green-bg); border-color: var(--green-border); }
+    .monitor-legend-swatch.monitor  { background: var(--amber-bg); border-color: var(--amber-border); }
+    .monitor-legend-swatch.critical { background: var(--red-bg);   border-color: var(--red-border); }
+
+    .monitor-heatmap-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0 4px;
+      font-size: 0.82rem;
+      padding: 8px 8px;
+    }
+    .monitor-heatmap-table th {
+      text-align: center;
+      color: var(--subtle);
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 4px 8px;
+      background: transparent;
+      border-bottom: none;
+    }
+    .monitor-heatmap-table th:first-child { text-align: left; padding-left: 4px; }
+    .monitor-heatmap-table td {
+      padding: 2px 3px;
+      border: none;
+      vertical-align: middle;
+      text-align: center;
+    }
+    .monitor-heatmap-company {
+      text-align: left !important;
+      font-weight: 600;
+      padding-left: 4px !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+    .monitor-heatmap-empty {
+      text-align: right !important;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      white-space: nowrap;
+      padding-right: 4px !important;
+    }
+    .heatmap-cell {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      border: 1px solid transparent;
+    }
+    .heatmap-cell.good     { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .heatmap-cell.monitor  { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
+    .heatmap-cell.critical { background: var(--red-bg);   border-color: var(--red-border);   color: var(--red); }
+
+    /* ATS summary strip */
+    .ats-summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 1rem;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+      transition: background var(--ease), border-color var(--ease);
+    }
+    .ats-summary-strip:empty { display: none; }
+    .ats-summary-item { display: inline-flex; align-items: center; gap: 6px; }
+    .ats-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
+    .ats-dot.healthy  { background: var(--green); }
+    .ats-dot.warning  { background: var(--amber); }
+    .ats-dot.critical { background: var(--red); }
+
+    /* Filter row above table */
+    .monitor-filter-row {
+      display: flex;
+      gap: 10px;
+      padding: 12px 16px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .monitor-table-meta {
+      color: var(--subtle);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .monitor-filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .monitor-filter-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+      font-family: var(--font);
+    }
+    .monitor-filter-btn.active           { color: var(--text);  background: var(--surface-2); }
+    .monitor-filter-btn.filter-monitor.active  { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+    .monitor-filter-btn.filter-critical.active { color: var(--red);   border-color: var(--red-border);   background: var(--red-bg); }
+
+    /* Search input */
+    .monitor-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 160px;
+      max-width: 260px;
+    }
+    .monitor-search {
+      width: 100%;
+      padding: 7px 12px 7px 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.82rem;
+      outline: none;
+      font-family: var(--font);
+      transition: border-color var(--ease), box-shadow var(--ease);
+    }
+    .monitor-search:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px var(--indigo-bg); }
+    .monitor-search::placeholder { color: var(--subtle); }
+    .monitor-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--subtle);
+      pointer-events: none;
+    }
+
+    /* Monitor badge (in table) */
+    .monitor-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .monitor-badge::before {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+    .monitor-badge.healthy  { background: var(--green-bg); color: var(--green); }
+    .monitor-badge.monitor  { background: var(--amber-bg); color: var(--amber); }
+    .monitor-badge.critical { background: var(--red-bg);   color: var(--red); }
+
+    /* Monitor link */
+    .monitor-link { color: var(--indigo); text-decoration: none; font-weight: 600; font-size: 0.82rem; }
+    .monitor-link:hover { text-decoration: underline; }
+
+    /* Monitor table row number */
+    .monitor-row-number { font-family: var(--mono); color: var(--subtle); font-size: 0.72rem; }
+
+    /* Monitor table hover */
+    .monitor-table tbody tr:hover td { background: var(--surface-2); }
+
+    /* Trend */
+    .trend-up   { color: var(--red);    font-size: 0.72rem; font-weight: 600; margin-left: 3px; }
+    .trend-down { color: var(--green);  font-size: 0.72rem; font-weight: 600; margin-left: 3px; }
+    .trend-same { color: var(--subtle); font-size: 0.72rem; margin-left: 3px; }
+
+    /* Monitor heatmap wrap spacing */
+    #monitor-heatmap-wrap { margin-bottom: 1rem; }
+
+    @media (max-width: 640px) {
+      .monitor-filter-row { flex-direction: column; align-items: flex-start; }
+      .monitor-search-wrap { max-width: 100%; }
+      .monitor-stat-strip { flex-direction: column; }
+      .monitor-stat-card { min-width: 100%; }
+    }
+  </style>
+</head>
+<body style="visibility:hidden">
+
+  <header>
+    <div class="header-row">
+      <span class="header-title">Pipeline Health</span>
+      <div class="header-actions">
+        <span id="user-email" class="user-email"></span>
+        <button id="signout-btn" class="signout-btn">Sign out</button>
+        <a href="index.html" class="nav-link">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Matched Jobs
+        </a>
+        <a href="rejected.html" class="nav-link">
+          Rejected
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <button class="theme-toggle" id="theme-btn" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-source" onclick="switchTab('source')">Source Health</button>
+      <button class="tab-btn" id="tab-btn-analytics" onclick="switchTab('analytics')">Job Analytics</button>
+      <button class="tab-btn" id="tab-btn-monitor" onclick="switchTab('monitor')">Source Monitor</button>
+      <div class="tab-bar-right">
+        <span id="last-updated" class="last-updated"></span>
+      </div>
+    </div>
+
+    <!-- ── Tab: Source Health ────────────────────────────── -->
+    <div id="tab-source-health">
+      <div id="alert-banner" class="alert-banner" style="display:none"></div>
+      <div class="table-outer">
+        <div id="status" class="status-msg">
+          <div class="spinner"></div>
+          <span>Loading health data…</span>
+        </div>
+        <table class="health-table" id="health-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Status</th>
+              <th>Health</th>
+              <th>Runs</th>
+              <th>Fails</th>
+              <th>Empties</th>
+              <th>Avg Time</th>
+              <th>Last Success</th>
+            </tr>
+          </thead>
+          <tbody id="health-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Tab: Source Monitor ───────────────────────────── -->
+    <div id="tab-source-monitor" style="display:none">
+      <div id="monitor-status" class="status-msg" style="display:none">
+        <div class="spinner"></div>
+        <span>Loading source monitor…</span>
+      </div>
+      <div id="monitor-content" style="display:none">
+        <!-- X/Y healthy banner -->
+        <div id="monitor-health-banner" class="monitor-health-banner"></div>
+
+        <!-- Stat strip -->
+        <div class="monitor-stat-strip" id="monitor-stat-strip"></div>
+
+        <!-- ATS summary strip -->
+        <div class="ats-summary-strip" id="ats-summary-strip"></div>
+
+        <!-- At-risk heatmap -->
+        <div class="table-outer" id="monitor-heatmap-wrap" style="display:none">
+          <div class="monitor-heatmap-header">
+            <h3 class="monitor-section-title">At-risk companies</h3>
+            <div class="monitor-heatmap-legend">
+              <span class="monitor-legend-item"><span class="monitor-legend-swatch good"></span>Had jobs</span>
+              <span class="monitor-legend-item"><span class="monitor-legend-swatch monitor"></span>Monitor</span>
+              <span class="monitor-legend-item"><span class="monitor-legend-swatch critical"></span>Critical</span>
+            </div>
+          </div>
+          <table class="monitor-heatmap-table" id="monitor-heatmap">
+            <thead id="monitor-heatmap-head"></thead>
+            <tbody id="monitor-heatmap-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Companies table -->
+        <div class="table-outer">
+          <div class="monitor-filter-row">
+            <div class="monitor-search-wrap">
+              <svg class="monitor-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" class="monitor-search" id="monitor-search" placeholder="Search companies…" oninput="onMonitorSearch(this.value)">
+            </div>
+            <div class="monitor-table-meta" id="monitor-table-meta"></div>
+            <div class="monitor-filter-actions">
+              <button class="monitor-filter-btn active"       id="monitor-filter-all"      onclick="setMonitorFilter('all')">All</button>
+              <button class="monitor-filter-btn filter-monitor"  id="monitor-filter-monitor"  onclick="setMonitorFilter('monitor')">Monitor</button>
+              <button class="monitor-filter-btn filter-critical" id="monitor-filter-critical" onclick="setMonitorFilter('critical')">Critical</button>
+            </div>
+          </div>
+          <table class="health-table monitor-table">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>Company</th>
+                <th>ATS</th>
+                <th>Last Job</th>
+                <th>Empty</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="monitor-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Job Analytics ────────────────────────────── -->
+    <div id="tab-job-analytics" style="display:none">
+      <div id="analytics-status" class="status-msg" style="display:none">
+        <div class="spinner"></div>
+        <span>Loading analytics…</span>
+      </div>
+      <div id="analytics-content" style="display:none">
+        <div class="stat-chips" id="analytics-chips"></div>
+        <div class="table-outer">
+          <table class="health-table analytics-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Source</th>
+                <th>Today</th>
+                <th>Total</th>
+                <th>7-day trend</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-tbody-top"></tbody>
+            <tbody id="analytics-tbody-rest" style="display:none"></tbody>
+          </table>
+          <div id="show-more-row" style="display:none; text-align:center; padding:12px 0; border-top:1px solid var(--border)">
+            <button id="show-more-btn" class="show-more-btn" onclick="toggleShowMore()"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ocydmipwjivmcgzhggml.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWRtaXB3aml2bWNnemhnZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY3OTMsImV4cCI6MjA5MTI1Mjc5M30.di8n5e3wQC378RVHit7ltb-9yuhwojsaXoRRhEEIh2E';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (async () => {
+      // ── Auth gate ───────────────────────────────────────────────────────────
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      document.body.style.visibility = '';
+      document.getElementById('user-email').textContent = session.user.email;
+      document.getElementById('signout-btn').addEventListener('click', async () => {
+        const { error } = await client.auth.signOut();
+        if (error) console.error('Sign out error:', error);
+        window.location.href = 'login.html';
+      });
+
+      client.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') window.location.href = 'login.html';
+      });
+
+      // ── Theme ────────────────────────────────────────────────────────────────
+      const html = document.documentElement;
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') html.setAttribute('data-theme', 'dark');
+
+      document.getElementById('theme-btn').addEventListener('click', () => {
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      // ── Supabase ─────────────────────────────────────────────────────────────
+      const ALERT_THRESHOLD = 2;
+
+      // ── Tabs ─────────────────────────────────────────────────────────────────
+      let analyticsLoaded = false;
+
+      function switchTab(name) {
+        document.getElementById('tab-source-health').style.display   = name === 'source'    ? '' : 'none';
+        document.getElementById('tab-job-analytics').style.display   = name === 'analytics' ? '' : 'none';
+        document.getElementById('tab-source-monitor').style.display  = name === 'monitor'   ? '' : 'none';
+        document.getElementById('tab-btn-source').classList.toggle('active',    name === 'source');
+        document.getElementById('tab-btn-analytics').classList.toggle('active', name === 'analytics');
+        document.getElementById('tab-btn-monitor').classList.toggle('active',   name === 'monitor');
+        if (name === 'analytics' && !analyticsLoaded) loadAnalytics();
+        if (name === 'monitor') initSourceMonitor();
+      }
+
+      // ── Source Health helpers ─────────────────────────────────────────────────
+      function relTime(iso) {
+        if (!iso) return '—';
+        const s = (Date.now() - new Date(iso).getTime()) / 1000;
+        if (s < 3600)  return Math.floor(s / 60) + 'm ago';
+        if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+        return Math.floor(s / 86400) + 'd ago';
+      }
+
+      function isStale(iso) {
+        return iso && (Date.now() - new Date(iso).getTime()) > 26 * 3600 * 1000;
+      }
+
+      function statusBadge(row) {
+        if (isStale(row.updated_at)) return '<span class="status-badge badge-stale">⊘ Stale</span>';
+        const cf = row.consecutive_failures || 0;
+        if (cf === 0)             return '<span class="status-badge badge-live">● Live</span>';
+        if (cf < ALERT_THRESHOLD) return '<span class="status-badge badge-warn">▲ Warn</span>';
+        return '<span class="status-badge badge-down">✕ Down</span>';
+      }
+
+      function healthPct(row) {
+        if (!row.runs) return '—';
+        return Math.round(((row.successes || 0) / row.runs) * 100) + '%';
+      }
+
+      function toggleDetail(i) {
+        document.getElementById('detail-' + i).classList.toggle('open');
+      }
+
+      // ── Load source health ────────────────────────────────────────────────────
+      async function load() {
+        const { data, error } = await client
+          .from('source_health_state')
+          .select('*')
+          .order('source');
+
+        const status = document.getElementById('status');
+        const table  = document.getElementById('health-table');
+        const tbody  = document.getElementById('health-body');
+
+        if (error) {
+          status.innerHTML = `<span class="error-text">Error: ${error.message}</span>`;
+          return;
+        }
+
+        if (!data || !data.length) {
+          status.innerHTML = '<p>No health data yet — run the pipeline first.</p>';
+          return;
+        }
+
+        // Last pipeline run timestamp
+        const latest = data.reduce((mx, r) => (r.updated_at || '') > mx ? (r.updated_at || '') : mx, '');
+        if (latest) document.getElementById('last-updated').textContent = 'Last run: ' + relTime(latest);
+
+        // Alert banner
+        const failing = data.filter(r => (r.consecutive_failures || 0) >= ALERT_THRESHOLD);
+        if (failing.length) {
+          const b = document.getElementById('alert-banner');
+          b.style.display = 'block';
+          b.innerHTML = `⚠️ <strong>${failing.length} source(s) failing ${ALERT_THRESHOLD}+ consecutive runs:</strong> ${failing.map(r => r.source).join(', ')}`;
+        }
+
+        // Table rows
+        status.style.display = 'none';
+        table.style.display = '';
+        tbody.innerHTML = data.map((row, i) => `
+          <tr class="data-row" onclick="toggleDetail(${i})">
+            <td style="font-family:var(--mono);font-size:0.755rem">${row.source}</td>
+            <td>${statusBadge(row)}</td>
+            <td class="cell-mono">${healthPct(row)}</td>
+            <td class="cell-mono">${row.runs || 0}</td>
+            <td class="cell-mono">${row.failures || 0}</td>
+            <td class="cell-mono">${row.empties || 0}</td>
+            <td class="cell-mono">${row.avg_duration_s != null ? row.avg_duration_s.toFixed(1) + 's' : '—'}</td>
+            <td class="cell-mono">${relTime(row.last_success_utc)}</td>
+          </tr>
+          <tr id="detail-${i}" class="detail-row">
+            <td colspan="8" class="detail-cell">
+              Total runs: ${row.runs || 0} &nbsp;·&nbsp;
+              Successes: ${row.successes || 0} &nbsp;·&nbsp;
+              Consecutive failures: ${row.consecutive_failures || 0} &nbsp;·&nbsp;
+              Last success: ${row.last_success_utc ? new Date(row.last_success_utc).toLocaleString() : 'never'}
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // ── Analytics helpers ─────────────────────────────────────────────────────
+      function escHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function sourceBadgeClass(src) {
+        const known = ['jsearch','greenhouse','lever','workday','dice','ashby','linkedin','builtin','breezyhr'];
+        const key = (src || '').toLowerCase();
+        return known.includes(key) ? 'source-' + key : 'source-default';
+      }
+
+      function buildSparkline(days, daily) {
+        const counts = days.map(d => daily[d] || 0);
+        const max = Math.max(...counts, 1);
+        const w = 80, h = 24, pad = 3;
+        const innerW = w - 2 * pad;
+        const innerH = h - 2 * pad;
+        const pts = counts.map((c, i) => {
+          const x = (pad + (i / (days.length - 1)) * innerW).toFixed(1);
+          const y = (h - pad - (c / max) * innerH).toFixed(1);
+          return `${x},${y}`;
+        }).join(' ');
+        const last = counts[counts.length - 1];
+        const first = counts.find(v => v > 0) || 0;
+        const style = getComputedStyle(document.documentElement);
+        const colorUp   = style.getPropertyValue('--indigo').trim() || '#6366f1';
+        const colorDown = style.getPropertyValue('--amber').trim()  || '#f59e0b';
+        // all-zero or declining → amber; stable/growing → indigo
+        const allZero = counts.every(v => v === 0);
+        const color = (!allZero && last >= first) ? colorUp : colorDown;
+        const lastX = (pad + innerW).toFixed(1);
+        const lastY = (h - pad - (last / max) * innerH).toFixed(1);
+        return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;overflow:visible"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lastX}" cy="${lastY}" r="2.5" fill="${color}"/></svg>`;
+      }
+
+      function renderRows(items, days) {
+        return items.map(co => {
+          const todayCell = co.today > 0
+            ? `<span style="color:var(--green);font-weight:600;font-family:var(--mono);font-size:0.755rem">+${co.today}</span>`
+            : `<span style="color:var(--subtle);font-family:var(--mono);font-size:0.755rem">—</span>`;
+          const badges = co.sources
+            .map(s => `<span class="source-badge ${sourceBadgeClass(s)}">${escHtml(s)}</span>`)
+            .join('');
+          return `<tr>
+            <td style="font-weight:500;white-space:nowrap">${escHtml(co.name)}</td>
+            <td style="white-space:nowrap">${badges}</td>
+            <td>${todayCell}</td>
+            <td style="font-family:var(--mono);font-size:0.755rem;font-weight:600">${co.total}</td>
+            <td>${buildSparkline(days, co.daily)}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      // ── Load analytics ────────────────────────────────────────────────────────
+      let totalCompaniesCount = 0;
+
+      async function loadAnalytics() {
+        const analyticsStatus  = document.getElementById('analytics-status');
+        const analyticsContent = document.getElementById('analytics-content');
+        analyticsStatus.style.display  = '';
+        analyticsContent.style.display = 'none';
+
+        const LIMIT = 5000;
+        const { data, error } = await client
+          .from('matched_jobs')
+          .select('company, source, fetched_at')
+          .order('fetched_at', { ascending: false })
+          .limit(LIMIT);
+
+        if (error) {
+          // Reset flag so user can retry by switching tabs
+          analyticsLoaded = false;
+          analyticsStatus.innerHTML = `<span class="error-text">Error: ${error.message} — <button class="show-more-btn" onclick="loadAnalytics()">Retry</button></span>`;
+          return;
+        }
+
+        if (!data || !data.length) {
+          analyticsLoaded = false;
+          analyticsStatus.innerHTML = '<p>No job data yet — run the pipeline first.</p>';
+          return;
+        }
+
+        // Warn if we hit the fetch limit — totals may be understated
+        if (data.length >= LIMIT) {
+          console.warn(`Analytics: hit ${LIMIT}-row fetch limit — totals may be understated`);
+        }
+
+        analyticsLoaded = true;
+
+        // UTC date string for "today"
+        const today = new Date().toISOString().slice(0, 10);
+
+        // Build last 7 day strings (oldest → newest)
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+          days.push(d.toISOString().slice(0, 10));
+        }
+
+        // Aggregate per company
+        const companies = {};
+        for (const row of data) {
+          const co = row.company || 'Unknown';
+          if (!companies[co]) companies[co] = { sources: new Set(), total: 0, today: 0, daily: {} };
+          companies[co].total++;
+          if (row.source) companies[co].sources.add(row.source);
+          const day = row.fetched_at ? row.fetched_at.slice(0, 10) : null;
+          if (day) {
+            companies[co].daily[day] = (companies[co].daily[day] || 0) + 1;
+            if (day === today) companies[co].today++;
+          }
+        }
+
+        // Sort by total DESC
+        const sorted = Object.entries(companies)
+          .map(([name, d]) => ({
+            name,
+            sources: [...d.sources].sort(),
+            total: d.total,
+            today: d.today,
+            daily: d.daily
+          }))
+          .sort((a, b) => b.total - a.total);
+
+        totalCompaniesCount = sorted.length;
+
+        // Summary chips
+        const totalJobs  = sorted.reduce((s, c) => s + c.total, 0);
+        const todayJobs  = sorted.reduce((s, c) => s + c.today, 0);
+
+        document.getElementById('analytics-chips').innerHTML = `
+          <div class="stat-chip stat-chip-green">
+            <div class="stat-chip-value">${totalJobs}</div>
+            <div class="stat-chip-label">Total jobs in DB</div>
+          </div>
+          <div class="stat-chip stat-chip-blue">
+            <div class="stat-chip-value">${todayJobs}</div>
+            <div class="stat-chip-label">Added today</div>
+          </div>
+          <div class="stat-chip stat-chip-amber">
+            <div class="stat-chip-value">${totalCompaniesCount}</div>
+            <div class="stat-chip-label">Companies tracked</div>
+          </div>
+        `;
+
+        const TOP_N = 20;
+        document.getElementById('analytics-tbody-top').innerHTML  = renderRows(sorted.slice(0, TOP_N), days);
+        document.getElementById('analytics-tbody-rest').innerHTML = renderRows(sorted.slice(TOP_N), days);
+
+        const showMoreRow = document.getElementById('show-more-row');
+        const showMoreBtn = document.getElementById('show-more-btn');
+        if (sorted.length > TOP_N) {
+          showMoreRow.style.display = '';
+          showMoreBtn.textContent = `Show all ${sorted.length} companies ↓`;
+        }
+
+        analyticsStatus.style.display  = 'none';
+        analyticsContent.style.display = '';
+      }
+
+      // ── Show more toggle ──────────────────────────────────────────────────────
+      let showingAll = false;
+      function toggleShowMore() {
+        showingAll = !showingAll;
+        const restBody  = document.getElementById('analytics-tbody-rest');
+        const btn       = document.getElementById('show-more-btn');
+        restBody.style.display = showingAll ? '' : 'none';
+        btn.textContent = showingAll
+          ? 'Show less ↑'
+          : `Show all ${totalCompaniesCount} companies ↓`;
+      }
+
+      // ── Source Monitor ────────────────────────────────────────────────────────
+      let companyHealthRows = [];
+      let monitorFilter = 'all';
+      let monitorSearchQuery = '';
+
+      function monitorStatus(row) {
+        const days = Number(row.days_empty || 0);
+        if (days >= 7) return 'critical';
+        if (days >= 3) return 'monitor';
+        return 'healthy';
+      }
+
+      function monitorDayLabels() {
+        return Array.from({length: 7}, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (6 - i));
+          return i === 6 ? 'Today' : d.toLocaleDateString('en-US', {weekday: 'short'});
+        });
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
+      }
+
+      function getTrend(row) {
+        const counts = Array.isArray(row.daily_counts) ? row.daily_counts : [];
+        if (counts.length < 2) return '';
+        const yesterday = counts[counts.length - 2] || 0;
+        const today = counts[counts.length - 1] || 0;
+        if (today === 0 && yesterday > 0) return '<span class="trend-up">↑</span>';
+        if (today > 0 && yesterday === 0) return '<span class="trend-down">↓</span>';
+        if (today === 0 && Number(row.days_empty || 0) > 1) return '<span class="trend-up">↑</span>';
+        return '<span class="trend-same">—</span>';
+      }
+
+      function monitorFilteredRows() {
+        const q = monitorSearchQuery.toLowerCase().trim();
+        return companyHealthRows
+          .filter(row => {
+            const matchFilter = monitorFilter === 'all' || monitorStatus(row) === monitorFilter;
+            const matchSearch = !q || (row.company || '').toLowerCase().includes(q) || (row.ats_type || '').toLowerCase().includes(q);
+            return matchFilter && matchSearch;
+          })
+          .sort((a, b) => (Number(b.days_empty || 0) - Number(a.days_empty || 0)) || String(a.company || '').localeCompare(String(b.company || '')));
+      }
+
+      function renderMonitorTableBody() {
+        const rows = monitorFilteredRows();
+        const meta = document.getElementById('monitor-table-meta');
+        meta.textContent = `${rows.length} companies shown · ${companyHealthRows.length} tracked`;
+        const tbody = document.getElementById('monitor-table-body');
+        if (!rows.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--muted)">No companies match this filter.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map((row, i) => {
+          const status = monitorStatus(row);
+          const boardUrl = escHtml(row.job_board_url || '#');
+          return `<tr>
+            <td class="monitor-row-number">${i + 1}</td>
+            <td style="font-weight:600">${escHtml(row.company || 'Unknown')}</td>
+            <td style="text-transform:capitalize">${escHtml(row.ats_type || 'unknown')}</td>
+            <td class="cell-mono">${formatDate(row.last_nonempty_at)}</td>
+            <td class="cell-mono">${Number(row.days_empty || 0)}${getTrend(row)}</td>
+            <td><span class="monitor-badge ${status}">${status}</span></td>
+            <td>${row.job_board_url ? `<a class="monitor-link" href="${boardUrl}" target="_blank" rel="noreferrer">↗ Open board</a>` : '—'}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      function renderMonitorHeatmap(rows) {
+        const atRisk = rows.filter(r => monitorStatus(r) !== 'healthy')
+          .sort((a, b) => Number(b.days_empty || 0) - Number(a.days_empty || 0));
+        const wrap = document.getElementById('monitor-heatmap-wrap');
+        if (!atRisk.length) { wrap.style.display = 'none'; return; }
+        wrap.style.display = 'block';
+        const labels = monitorDayLabels();
+        document.getElementById('monitor-heatmap-head').innerHTML = `<tr>
+          <th style="text-align:left;width:140px">Company</th>
+          ${labels.map(l => `<th style="width:44px">${escHtml(l)}</th>`).join('')}
+          <th style="text-align:right;width:90px">Empty</th>
+        </tr>`;
+        document.getElementById('monitor-heatmap-body').innerHTML = atRisk.map(row => {
+          const status = monitorStatus(row);
+          const counts = Array.isArray(row.daily_counts) ? row.daily_counts : [];
+          const padded = [...Array(Math.max(0, 7 - counts.length)).fill(0), ...counts].slice(-7);
+          return `<tr>
+            <td class="monitor-heatmap-company">${escHtml(row.company || 'Unknown')}</td>
+            ${padded.map((c, idx) => {
+              const variant = Number(c) > 0 ? 'good' : status;
+              return `<td><span class="heatmap-cell ${variant}" title="${escHtml(row.company || '')} · ${escHtml(labels[idx])}: ${c}">${Number(c) || 0}</span></td>`;
+            }).join('')}
+            <td class="monitor-heatmap-empty">${Number(row.days_empty || 0)}d empty</td>
+          </tr>`;
+        }).join('');
+      }
+
+      function renderAtsSummary(rows) {
+        const ats = {};
+        for (const row of rows) {
+          const key = (row.ats_type || 'unknown').toLowerCase();
+          if (!ats[key]) ats[key] = {healthy:0, monitor:0, critical:0};
+          ats[key][monitorStatus(row)]++;
+        }
+        document.getElementById('ats-summary-strip').innerHTML = Object.entries(ats)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([key, c]) => {
+            const atRisk = c.monitor + c.critical;
+            if (!atRisk) return `<span class="ats-summary-item"><span class="ats-dot healthy"></span>${escHtml(key)}: all healthy</span>`;
+            const parts = [];
+            if (c.critical > 0) parts.push(`${c.critical} critical`);
+            if (c.monitor > 0)  parts.push(`${c.monitor} monitor`);
+            const dotCls = c.critical > 0 ? 'critical' : 'warning';
+            return `<span class="ats-summary-item"><span class="ats-dot ${dotCls}"></span>${escHtml(key)}: ${parts.join(', ')}</span>`;
+          }).join('');
+      }
+
+      function renderSourceMonitor(rows) {
+        companyHealthRows = Array.isArray(rows) ? rows.slice() : [];
+        const totalCount    = companyHealthRows.length;
+        const healthyCount  = companyHealthRows.filter(r => monitorStatus(r) === 'healthy').length;
+        const monitorCount  = companyHealthRows.filter(r => monitorStatus(r) === 'monitor').length;
+        const criticalCount = companyHealthRows.filter(r => monitorStatus(r) === 'critical').length;
+
+        // X/Y healthy banner
+        const bannerEl = document.getElementById('monitor-health-banner');
+        const bannerClass = criticalCount > 0 ? 'has-critical' : monitorCount > 0 ? 'has-monitor' : 'all-healthy';
+        const bannerIcon  = criticalCount > 0 ? '🔴' : monitorCount > 0 ? '⚠️' : '✅';
+        let detailParts = [];
+        if (monitorCount  > 0) detailParts.push(`${monitorCount} monitor`);
+        if (criticalCount > 0) detailParts.push(`${criticalCount} critical`);
+        const detailStr = detailParts.length ? ` · ${detailParts.join(' · ')}` : '';
+        bannerEl.className = `monitor-health-banner ${bannerClass}`;
+        bannerEl.innerHTML = `
+          <span class="banner-main">${bannerIcon} ${healthyCount} / ${totalCount} companies healthy</span>
+          ${detailStr ? `<span class="banner-detail">${detailStr}</span>` : ''}
+        `;
+
+        document.getElementById('monitor-stat-strip').innerHTML = `
+          <div class="monitor-stat-card healthy">
+            <div class="stat-chip-value">${healthyCount}</div>
+            <div class="stat-chip-label">Healthy</div>
+          </div>
+          <div class="monitor-stat-card monitor">
+            <div class="stat-chip-value">${monitorCount}</div>
+            <div class="stat-chip-label">Monitor · 3-6 days</div>
+          </div>
+          <div class="monitor-stat-card critical">
+            <div class="stat-chip-value">${criticalCount}</div>
+            <div class="stat-chip-label">Critical · 7+ days</div>
+          </div>
+        `;
+
+        renderMonitorHeatmap(companyHealthRows);
+        renderAtsSummary(companyHealthRows);
+        renderMonitorTableBody();
+      }
+
+      function setMonitorFilter(next) {
+        monitorFilter = next;
+        document.getElementById('monitor-filter-all').classList.toggle('active',      next === 'all');
+        document.getElementById('monitor-filter-monitor').classList.toggle('active',  next === 'monitor');
+        document.getElementById('monitor-filter-critical').classList.toggle('active', next === 'critical');
+        renderMonitorTableBody();
+      }
+
+      function onMonitorSearch(query) {
+        monitorSearchQuery = query;
+        renderMonitorTableBody();
+      }
+
+      let monitorLoaded = false;
+      async function initSourceMonitor() {
+        if (monitorLoaded) return;
+        const statusEl  = document.getElementById('monitor-status');
+        const contentEl = document.getElementById('monitor-content');
+        statusEl.style.display  = '';
+        contentEl.style.display = 'none';
+        try {
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/company_source_health?select=*&order=days_empty.desc`,
+            { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+          );
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const data = await response.json();
+          statusEl.style.display = 'none';
+          if (!data.length) {
+            statusEl.innerHTML = '<p>No company health data yet — run the pipeline to populate.</p>';
+            statusEl.style.display = '';
+            return;
+          }
+          monitorLoaded = true;
+          renderSourceMonitor(data);
+          contentEl.style.display = '';
+        } catch (err) {
+          statusEl.innerHTML = `<span class="error-text">Error: ${err.message}</span>`;
+          statusEl.style.display = '';
+        }
+      }
+
+      // ── Expose globals for inline onclick handlers ────────────────────────────
+      window.switchTab        = switchTab;
+      window.toggleDetail     = toggleDetail;
+      window.setMonitorFilter = setMonitorFilter;
+      window.onMonitorSearch  = onMonitorSearch;
+      window.toggleShowMore  = toggleShowMore;
+      window.loadAnalytics   = loadAnalytics;
+      window.initSourceMonitor = initSourceMonitor;
+
+      // ── Init ──────────────────────────────────────────────────────────────────
+      load();
+
+    })();
+  </script>
+</body>
+</html>

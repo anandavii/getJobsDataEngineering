@@ -1,0 +1,15 @@
+# .pre-commit-config.yaml
+# Runs automatically on every `git commit`.
+# Install once: uv tool install pre-commit && pre-commit install
+
+# ── Global exclusions (never checked by any hook) ─────────────────────────────
+exclude: '^(\.venv|venv|env|ENV|__pycache__|\.pytest_cache|\.ruff_cache|node_modules|dist|build|\.playwright-cli|supabase/\.temp)(/|$)'
+
+repos:
+  # ── Python: ruff (lint + auto-fix + format check) ─────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff            # linter — auto-fixes what it safely can
+        args: [--fix]
+      - id: ruff-format     # formatter (replaces black)

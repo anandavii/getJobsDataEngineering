@@ -1,0 +1,76 @@
+name: Daily Data Engineering Job Search
+
+on:
+  schedule:
+    - cron: '0 14,21 * * *'  # 2:00 PM & 9:00 PM UTC = 9:00 AM & 4:00 PM EST
+  workflow_dispatch:        # manual trigger for testing
+
+jobs:
+  fetch-jobs:
+    name: Fetch & Push Jobs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Create .tmp directory
+        run: mkdir -p .tmp
+
+      - name: Verify required secrets
+        run: |
+          missing=""
+          for secret in JSEARCH_API_KEY SUPABASE_URL SUPABASE_SERVICE_KEY; do
+            val=$(eval echo "\$$secret")
+            if [ -z "$val" ]; then
+              echo "Missing required secret: $secret"
+              missing="$missing $secret"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "ERROR: Required secrets are not configured. Add them in GitHub → Settings → Secrets → Actions."
+            exit 1
+          fi
+          for secret in DISCORD_WEBHOOK_URL EMAIL_TO EMAIL_FROM EMAIL_APP_PASSWORD; do
+            val=$(eval echo "\$$secret")
+            if [ -z "$val" ]; then
+              echo "Warning: optional secret $secret is not set — that notification channel will be skipped"
+            fi
+          done
+        env:
+          JSEARCH_API_KEY:       ${{ secrets.JSEARCH_API_KEY }}
+          SUPABASE_URL:          ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY:  ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DISCORD_WEBHOOK_URL:   ${{ secrets.DISCORD_WEBHOOK_URL }}
+          EMAIL_TO:              ${{ secrets.EMAIL_TO }}
+          EMAIL_FROM:            ${{ secrets.EMAIL_FROM }}
+          EMAIL_APP_PASSWORD:    ${{ secrets.EMAIL_APP_PASSWORD }}
+
+      - name: Run job search orchestrator
+        run: uv run --with-requirements requirements.txt tools/orchestrate.py
+        env:
+          JSEARCH_API_KEY:       ${{ secrets.JSEARCH_API_KEY }}
+          SUPABASE_URL:          ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY:  ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DISCORD_WEBHOOK_URL:   ${{ secrets.DISCORD_WEBHOOK_URL }}
+          EMAIL_TO:              ${{ secrets.EMAIL_TO }}
+          EMAIL_FROM:            ${{ secrets.EMAIL_FROM }}
+          EMAIL_APP_PASSWORD:    ${{ secrets.EMAIL_APP_PASSWORD }}
+
+      - name: Upload run artifacts
+        if: always()   # upload even if the job fails — useful for debugging
+        uses: actions/upload-artifact@v4
+        with:
+          name: "run-${{ github.run_id }}"
+          path: .tmp/
+          retention-days: 7

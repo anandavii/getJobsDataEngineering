@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — Jobs</title>
+  <link rel="icon" type="image/png" href="jobs-favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F5F5F4; --surface: #FFFFFF; --border: #E7E5E4;
+      --text: #0C0A09; --text-2: #44403C; --muted: #78716C; --subtle: #A8A29E;
+      --accent: #18181B; --accent-fg: #FFFFFF;
+      --red: #B91C1C; --red-bg: #FEF2F2; --red-border: #FECACA;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease: 150ms ease;
+    }
+    [data-theme="dark"] {
+      --bg: #09090B; --surface: #111113; --border: #27272A;
+      --text: #FAFAF9; --text-2: #D6D3D1; --muted: #A8A29E; --subtle: #57534E;
+      --accent: #F5F5F4; --accent-fg: #09090B;
+      --red: #F87171; --red-bg: #1C0A0A; --red-border: #7F1D1D;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.875rem;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 360px;
+    }
+    .logo {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+    label {
+      display: block;
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: var(--text-2);
+      margin-bottom: 0.35rem;
+    }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      height: 36px;
+      padding: 0 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--ease);
+      margin-bottom: 1rem;
+    }
+    input:focus { border-color: var(--subtle); }
+    button[type="submit"] {
+      width: 100%;
+      height: 36px;
+      background: var(--accent);
+      color: var(--accent-fg);
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: var(--font);
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity var(--ease);
+    }
+    button[type="submit"]:hover { opacity: 0.85; }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-box {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--red);
+    }
+    .footer-note {
+      margin-top: 1.25rem;
+      font-size: 0.75rem;
+      color: var(--subtle);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Job Matches</div>
+    <div class="subtitle">Data Engineering Jobs Pipeline — sign in to continue</div>
+    <form id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+      <button type="submit" id="submit-btn">Sign in</button>
+      <div id="error-box" class="error-box"></div>
+    </form>
+    <div class="footer-note">Access restricted to authorised users</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://ocydmipwjivmcgzhggml.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWRtaXB3aml2bWNnemhnZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY3OTMsImV4cCI6MjA5MTI1Mjc5M30.di8n5e3wQC378RVHit7ltb-9yuhwojsaXoRRhEEIh2E';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const html = document.documentElement;
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') html.setAttribute('data-theme', 'dark');
+
+    // If already signed in, skip the login page
+    client.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = 'index.html';
+    });
+
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorBox = document.getElementById('error-box');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in…';
+      errorBox.style.display = 'none';
+
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      const { error } = await client.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
