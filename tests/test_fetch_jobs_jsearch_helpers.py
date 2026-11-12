@@ -3,6 +3,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import requests
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -74,6 +76,26 @@ class FetchJobsJSearchQuotaTests(unittest.TestCase):
 
         self.assertEqual(result, [])
         mock_get.assert_called_once()  # must NOT retry remaining keywords
+
+
+class FetchJobsJSearchRequestTests(unittest.TestCase):
+    def test_run_maps_legacy_yesterday_to_supported_three_days(self) -> None:
+        config = {"search": {"keywords": ["Data Engineer"], "date_posted": "yesterday", "jsearch_num_pages": 1}}
+        response = MagicMock()
+        response.status_code = 200
+        response.json.return_value = {"data": []}
+
+        with patch("fetch_jobs_jsearch.requests.get", return_value=response) as mock_get:
+            fetch_jobs_jsearch.run(config, "fake-key")
+
+        self.assertEqual(mock_get.call_args.kwargs["params"]["date_posted"], "3days")
+
+    def test_run_raises_when_every_keyword_request_fails(self) -> None:
+        config = {"search": {"keywords": ["Data Engineer"], "date_posted": "today", "jsearch_num_pages": 1}}
+
+        with patch("fetch_jobs_jsearch.requests.get", side_effect=requests.RequestException("bad request")):
+            with self.assertRaises(RuntimeError):
+                fetch_jobs_jsearch.run(config, "fake-key")
 
 
 if __name__ == "__main__":
